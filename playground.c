@@ -60,14 +60,18 @@ int stringcmp(const char *str1, const char *str2)
 	/* printf("%s\n", str2); */
 	/* printf("%c\n", *(str2 + 1)); */
 
-	/* char *something = "something"; */
-	char something[] = "something";
-	something[0] = 'A';
+	char *s1 = "something!";
+	char s2[] = "something";
+	s2[0] = 'A';
+
+	// The sizeof behave differently.
+	printf("s1: %d\n", sizeof(s1)); // Returning size of pointer.
+	printf("s2: %d\n", sizeof(s2));
 
 	while (*str1 && *str1 == *str2) {
 		/* printf("str1: %d\n", *str1); */
 		/* printf("str1 char: %c\n", *str1); */
-		str1++;
+		str1++; // called pointer arithmetic.
 		str2++;
 	}
 
