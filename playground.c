@@ -2,6 +2,11 @@
 #include <stdlib.h>
 
 #include <editline/readline.h>
+/* #include <histedit.h> */
+
+/* #define max_input 2048 */
+
+/* static char input[max_input]; */
 
 int stringcmp(const char *str1, const char *str2);
 
@@ -13,13 +18,21 @@ int main()
 	char prompt[128] = "";
 
 	while (1) {
+		/* fputs("sclisp> ", stdout); */
+		/* fgets(input, max_input, stdin); */
+
 		sprintf(prompt, "sclisp> ");
 		char *input = readline(prompt);
+
+		add_history(input);
 
 		if (input == NULL || stringcmp(input, "exit") == 0) {
 			free(input);
 			break;
 		}
+
+		int where_hist = where_history();
+		printf("%d\n", where_hist);
 
 		printf("Holy, C blessing: %s\n", input);
 		free(input);
@@ -40,7 +53,20 @@ int main()
  */
 int stringcmp(const char *str1, const char *str2)
 {
+	/* char p = 'A'; */
+	/* printf("%d\n", p); */
+
+	/* printf("%c\n", *str1); */
+	/* printf("%s\n", str2); */
+	/* printf("%c\n", *(str2 + 1)); */
+
+	/* char *something = "something"; */
+	char something[] = "something";
+	something[0] = 'A';
+
 	while (*str1 && *str1 == *str2) {
+		/* printf("str1: %d\n", *str1); */
+		/* printf("str1 char: %c\n", *str1); */
 		str1++;
 		str2++;
 	}

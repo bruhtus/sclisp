@@ -1,0 +1,13 @@
+#!/bin/sh
+case "$1" in
+  main)
+    # only tested in arch linux.
+    gcc -l readline -o sclisp sclisp.c
+    ;;
+  playground)
+    gcc -l readline -o playground playground.c
+    ;;
+  *)
+    echo "Usage: $0 main | playground"
+    ;;
+esac
