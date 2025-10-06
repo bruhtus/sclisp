@@ -10,6 +10,10 @@ case "$1" in
   playground-debug)
     gcc -save-temps -l readline -o playground playground.c
     ;;
+  playground-objdump)
+    gcc -l readline -ggdb -c playground.c
+    objdump --source --full-contents --reloc playground.o
+    ;;
   *)
     echo "Usage: $0 main | playground"
     ;;
