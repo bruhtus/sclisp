@@ -60,9 +60,18 @@ int stringcmp(const char *str1, const char *str2)
 	/* printf("%s\n", str2); */
 	/* printf("%c\n", *(str2 + 1)); */
 
-	char *s1 = "something!";
+	/* char *const s1 = "something!"; */
+	/* const char *const s1 = "something!"; */
+	/* char *s1 = "something!"; */
+	const char *s1 = "something!";
 	char s2[] = "something";
 	s2[0] = 'A';
+
+	printf("%s\n", s2);
+	printf("%p\n", s1);
+
+	s1 = "ANU";
+	printf("%p\n", s1);
 
 	// The sizeof behave differently.
 	printf("s1: %d\n", sizeof(s1)); // Returning size of pointer.
