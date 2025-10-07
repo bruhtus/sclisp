@@ -64,6 +64,8 @@ int stringcmp(const char *str1, const char *str2)
 	/* const char *const s1 = "something!"; */
 	/* char *s1 = "something!"; */
 	const char *s1 = "something!";
+	/* char const s2[] = "something"; */
+	/* const char s2[] = "something"; */
 	char s2[] = "something";
 	s2[0] = 'A';
 
