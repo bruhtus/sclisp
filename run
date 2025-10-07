@@ -14,6 +14,10 @@ case "$1" in
     gcc -l readline -ggdb -c playground.c
     objdump --source --full-contents --reloc playground.o
     ;;
+  playground-readelf-segments)
+    gcc -l readline -ggdb -o playground playground.c
+    readelf --segments playground
+    ;;
   *)
     echo "Usage: $0 main | playground"
     ;;
