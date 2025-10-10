@@ -69,11 +69,11 @@ int stringcmp(const char *str1, const char *str2)
 	char s2[] = "something";
 	s2[0] = 'A';
 
-	printf("%s\n", s2);
-	printf("%p\n", s1);
+	printf("s2: %s\n", s2);
+	printf("s1 before: %p\n", s1);
 
 	s1 = "ANU";
-	printf("%p\n", s1);
+	printf("s1 after: %p\n", s1);
 
 	// The sizeof behave differently.
 	printf("s1: %d\n", sizeof(s1)); // Returning size of pointer.

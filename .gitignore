@@ -1,1 +1,2 @@
-playground.[ios]
+playground/*
+!playground/*.c
