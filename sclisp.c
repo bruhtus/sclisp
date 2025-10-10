@@ -16,6 +16,8 @@ int main()
 		sprintf(prompt, "sclisp> ");
 		char *input = readline(prompt);
 
+		add_history(input);
+
 		if (input == NULL || stringcmp(input, "exit") == 0) {
 			free(input);
 			break;
