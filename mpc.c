@@ -3430,6 +3430,7 @@ mpc_parser_t *mpca_total(mpc_parser_t *a) { return mpc_total(a, (mpc_dtor_t)mpc_
 typedef struct {
   va_list *va;
   int parsers_num;
+  int args_num;
   mpc_parser_t **parsers;
   int flags;
 } mpca_grammar_st_t;
@@ -3539,8 +3540,8 @@ static mpc_parser_t *mpca_grammar_find_parser(char *x, mpca_grammar_st_t *st) {
     }
 
     /* Search New Parsers */
-    while (1) {
-
+    int j;
+    for (j = st->parsers_num; j < st->args_num; j++) {
       p = va_arg(*st->va, mpc_parser_t*);
 
       st->parsers_num++;
@@ -3549,7 +3550,6 @@ static mpc_parser_t *mpca_grammar_find_parser(char *x, mpca_grammar_st_t *st) {
 
       if (p == NULL || p->name == NULL) { return mpc_failf("Unknown Parser '%s'!", x); }
       if (p->name && strcmp(p->name, x) == 0) { return p; }
-
     }
 
   }
@@ -3838,16 +3838,22 @@ mpc_err_t *mpca_lang_pipe(int flags, FILE *p, ...) {
   return err;
 }
 
-mpc_err_t *mpca_lang(int flags, const char *language, ...) {
+mpc_err_t *mpca_lang(
+    int flags,
+    const char *language,
+    int args_num,
+    ...
+) {
 
   mpca_grammar_st_t st;
   mpc_input_t *i;
   mpc_err_t *err;
 
   va_list va;
-  va_start(va, language);
+  va_start(va, args_num);
 
   st.va = &va;
+  st.args_num = args_num;
   st.parsers_num = 0;
   st.parsers = NULL;
   st.flags = flags;
