@@ -4133,3 +4133,4 @@ void mpc_optimise(mpc_parser_t *p) {
   mpc_optimise_unretained(p, 1);
 }
 
+// vim: set et sw=2 ts=2:

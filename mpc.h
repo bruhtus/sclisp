@@ -389,3 +389,5 @@ int mpc_test_fail(mpc_parser_t *p, const char *s, const void *d,
 #endif
 
 #endif
+
+// vim: set et sw=2 ts=2:
