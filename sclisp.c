@@ -27,7 +27,7 @@ int main()
 		"number: /-?\\d+([\\.,]\\d+)?/;"
 		"operator: '+' | '-' | '*' | '/' | '%';"
 		"expr: <number> | '(' <operator> <expr>+ ')';"
-		"sclisp: /^/ <operator> <expr>+ /$/;",
+		"sclisp: /^/ <operator>? <expr>+ /$/;",
 		parsers_len, init_parsers
 	);
 
