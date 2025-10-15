@@ -25,7 +25,7 @@ int main()
 	mpca_lang(
 		MPCA_LANG_DEFAULT,
 		"number: /-?[0-9]+/;"
-		"operator: '+' | '-' | '*' | '/';"
+		"operator: '+' | '-' | '*' | '/' | '%';"
 		"expr: <number> | '(' <operator> <expr>+ ')';"
 		"sclisp: /^/ <operator> <expr>+ /$/;",
 		parsers_len, init_parsers
