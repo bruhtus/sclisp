@@ -360,7 +360,13 @@ enum {
 
 mpc_parser_t *mpca_grammar(int flags, const char *grammar, ...);
 
-mpc_err_t *mpca_lang(int flags, const char *language, int args_num, ...);
+mpc_err_t *mpca_lang(
+    int flags,
+    const char *language,
+    int parsers_len,
+    mpc_parser_t *parsers[]
+);
+
 mpc_err_t *mpca_lang_file(int flags, FILE *f, ...);
 mpc_err_t *mpca_lang_pipe(int flags, FILE *f, ...);
 mpc_err_t *mpca_lang_contents(int flags, const char *filename, ...);

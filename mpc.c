@@ -3437,8 +3437,9 @@ mpc_parser_t *mpca_total(mpc_parser_t *a) { return mpc_total(a, (mpc_dtor_t)mpc_
 
 typedef struct {
   va_list *va;
+  int parsers_len;
+  mpc_parser_t **init_parsers;
   int parsers_num;
-  int args_num;
   mpc_parser_t **parsers;
   int flags;
 } mpca_grammar_st_t;
@@ -3549,8 +3550,8 @@ static mpc_parser_t *mpca_grammar_find_parser(char *x, mpca_grammar_st_t *st) {
 
     /* Search New Parsers */
     int j;
-    for (j = st->parsers_num; j < st->args_num; j++) {
-      p = va_arg(*st->va, mpc_parser_t*);
+    for (j = st->parsers_num; j < st->parsers_len; j++) {
+      p = st->init_parsers[j];
 
       st->parsers_num++;
       st->parsers = realloc(st->parsers, sizeof(mpc_parser_t*) * st->parsers_num);
@@ -3560,8 +3561,12 @@ static mpc_parser_t *mpca_grammar_find_parser(char *x, mpca_grammar_st_t *st) {
       if (p->name && strcmp(p->name, x) == 0) { return p; }
     }
 
-  }
+    // In case new parsers is not the same as the language schema.
+    mpc_parser_t *fp = mpc_undefined();
+    fp->type = MPC_TYPE_FAIL;
 
+    return fp;
+  }
 }
 
 static mpc_val_t *mpcaf_grammar_id(mpc_val_t *x, void *s) {
@@ -3717,7 +3722,15 @@ static mpc_val_t *mpca_stmt_list_apply_to(mpc_val_t *x, void *s) {
 
   while(*stmts) {
     stmt = *stmts;
+
     left = mpca_grammar_find_parser(stmt->ident, st);
+
+    if (left->type == MPC_TYPE_FAIL) {
+      free(x);
+      fprintf(stderr, "Parser not found: %s\n", stmt->ident);
+      return NULL;
+    }
+
     if (st->flags & MPCA_LANG_PREDICTIVE) { stmt->grammar = mpc_predictive(stmt->grammar); }
     if (stmt->name) { stmt->grammar = mpc_expect(stmt->grammar, stmt->name); }
     mpc_optimise(stmt->grammar);
@@ -3849,19 +3862,17 @@ mpc_err_t *mpca_lang_pipe(int flags, FILE *p, ...) {
 mpc_err_t *mpca_lang(
     int flags,
     const char *language,
-    int args_num,
-    ...
+    int parsers_len,
+    mpc_parser_t *init_parsers[]
 ) {
 
   mpca_grammar_st_t st;
   mpc_input_t *i;
   mpc_err_t *err;
 
-  va_list va;
-  va_start(va, args_num);
-
-  st.va = &va;
-  st.args_num = args_num;
+  st.va = NULL;
+  st.parsers_len = parsers_len;
+  st.init_parsers = init_parsers;
   st.parsers_num = 0;
   st.parsers = NULL;
   st.flags = flags;
@@ -3871,7 +3882,6 @@ mpc_err_t *mpca_lang(
   mpc_input_delete(i);
 
   free(st.parsers);
-  va_end(va);
   return err;
 }
 
