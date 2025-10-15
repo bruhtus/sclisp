@@ -1,3 +1,11 @@
+/*
+** mpc - Micro Parser Combinator library for C
+**
+** https://github.com/orangeduck/mpc
+**
+** Daniel Holden - contact@daniel-holden.com
+** Licensed under BSD3
+*/
 #include "mpc.h"
 
 /*
