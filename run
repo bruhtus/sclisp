@@ -4,6 +4,10 @@ case "$1" in
     # only tested in arch linux.
     gcc -l readline -o sclisp mpc.c sclisp.c
     ;;
+  main-debug)
+    # only tested in arch linux.
+    gcc -l readline -ggdb -o sclisp mpc.c sclisp.c
+    ;;
   playground)
     gcc -l readline -o playground playground.c
     ;;
