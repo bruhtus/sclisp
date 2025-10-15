@@ -57,9 +57,11 @@ int main()
 		);
 
 		if (parsed) {
-			printf("Parsed: %d\n", parsed);
+			mpc_ast_print(result.output);
+			mpc_ast_delete(result.output);
 		} else {
-			printf("Not parsed: %d\n", parsed);
+			mpc_err_print(result.error);
+			mpc_err_delete(result.error);
 		}
 
 		free(input);
