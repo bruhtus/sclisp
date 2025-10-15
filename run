@@ -2,7 +2,7 @@
 case "$1" in
   main)
     # only tested in arch linux.
-    gcc -l readline -o sclisp sclisp.c
+    gcc -l readline -o sclisp mpc.c sclisp.c
     ;;
   playground)
     gcc -l readline -o playground playground.c

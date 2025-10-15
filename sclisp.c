@@ -1,3 +1,4 @@
+#include "mpc.h"
 #include "stringcmp.h"
 
 #include <stdio.h>
@@ -7,6 +8,29 @@
 
 int main()
 {
+	mpc_parser_t *Number = mpc_new("number");
+	mpc_parser_t *Operator = mpc_new("operator");
+	mpc_parser_t *Expr = mpc_new("expr");
+	mpc_parser_t *Sclisp = mpc_new("sclisp");
+
+	mpc_parser_t *init_parsers[] = {
+		Number,
+		Operator,
+		Expr,
+		Sclisp
+	};
+
+	int parsers_len = sizeof(init_parsers) / sizeof(init_parsers[0]);
+
+	mpca_lang(
+		MPCA_LANG_DEFAULT,
+		"number: /-?[0-9]+/;"
+		"operator: '+' | '-' | '*' | '/';"
+		"expr: <number> | '(' <operator> <expr>+ ')';"
+		"sclisp: /^/ <operator> <expr>+ /$/;",
+		parsers_len, init_parsers
+	);
+
 	puts("Sclisp v0.0.1-rc1");
 	puts("Press ctrl-c, ctrl-d, exit command to exit\n");
 
@@ -16,16 +40,31 @@ int main()
 		sprintf(prompt, "sclisp> ");
 		char *input = readline(prompt);
 
-		add_history(input);
-
 		if (input == NULL || stringcmp(input, "exit") == 0) {
 			free(input);
 			break;
 		}
 
-		printf("Holy C blessing: %s\n", input);
+		add_history(input);
+
+		mpc_result_t result;
+
+		int parsed = mpc_parse(
+			"<stdin>",
+			input,
+			Sclisp,
+			&result
+		);
+
+		if (parsed) {
+			printf("Parsed: %d\n", parsed);
+		} else {
+			printf("Not parsed: %d\n", parsed);
+		}
+
 		free(input);
 	}
 
+	mpc_cleanup(4, Number, Operator, Expr, Sclisp);
 	return 0;
 }
