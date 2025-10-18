@@ -6,6 +6,9 @@
 
 #include <editline/readline.h>
 
+long eval(mpc_ast_t *ast);
+long eval_op(long x, char *op, long y);
+
 int main()
 {
 	mpc_parser_t *Number = mpc_new("number");
@@ -57,7 +60,10 @@ int main()
 		);
 
 		if (parsed) {
-			mpc_ast_print(result.output);
+			mpc_ast_t *ast = result.output;
+			long node = eval(ast);
+			printf("%d\n", node);
+
 			mpc_ast_delete(result.output);
 		} else {
 			mpc_err_print(result.error);
@@ -68,5 +74,66 @@ int main()
 	}
 
 	mpc_cleanup(4, Number, Operator, Expr, Sclisp);
+	return 0;
+}
+
+long eval(mpc_ast_t *ast)
+{
+	char *substr = strstr(ast->tag, "number");
+
+	if (substr)
+		return atoi(ast->contents);
+
+	char *op = NULL;
+	long x = 0;
+
+	mpc_ast_t  **children = ast->children;
+	int children_num = ast->children_num;
+
+	/*
+	 * Because we made the intial operator optional, we don't need to provide operator for the first number.
+	 * This break the calculation because the expected minimum children_num decreased.
+	 *
+	 * Currently still not sure how the children_num calculated, but from the input of only number (without preceding operator), the result of children_num is 3. So when the children_num equal 3, we can just return the value directly.
+	 */
+	if (children_num == 3) {
+		x = atoi(children[1]->contents);
+		return x;
+	}
+
+	if (children_num >= 1) {
+		op = children[1]->contents;
+		x = eval(children[2]);
+
+		int i = 3;
+		while (strstr(children[i]->tag, "expr")) {
+			x = eval_op(x, op, eval(children[i]));
+			i++;
+		}
+	}
+
+	return x;
+}
+
+long eval_op(long x, char *op, long y)
+{
+	if (op == NULL)
+		return 0;
+
+	if (stringcmp(op, "+") == 0)
+		return x + y;
+
+	if (stringcmp(op, "-") == 0)
+		return x - y;
+
+	if (stringcmp(op, "*") == 0)
+		return x * y;
+
+	if (stringcmp(op, "/") == 0)
+		return x / y;
+
+	if (stringcmp(op, "%") == 0)
+		return x % y;
+
 	return 0;
 }
