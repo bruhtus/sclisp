@@ -6,10 +6,31 @@
 
 #include <editline/readline.h>
 
-long eval(mpc_ast_t *ast);
-long eval_op(long x, char *op, long y);
+/* Lisp value. */
+struct lval {
+	int type;
+	long num;
+	int err;
+};
 
-int main()
+enum lval_type {
+	LVAL_NUM = 0,
+	LVAL_ERR = 1
+};
+
+enum lval_err {
+	LERR_DIV_ZERO = 0,
+	LERR_INVALID_OP = 1,
+	LERR_INVALID_NUM = 2
+};
+
+struct lval eval(mpc_ast_t *ast);
+struct lval eval_op(struct lval x, char *op, struct lval y);
+void lval_print(struct lval value);
+struct lval lval_num(long x);
+struct lval lval_err(int x);
+
+int main(int argc, char **argv)
 {
 	mpc_parser_t *Number = mpc_new("number");
 	mpc_parser_t *Operator = mpc_new("operator");
@@ -61,8 +82,8 @@ int main()
 
 		if (parsed) {
 			mpc_ast_t *ast = result.output;
-			long node = eval(ast);
-			printf("%d\n", node);
+			struct lval value = eval(ast);
+			lval_print(value);
 
 			mpc_ast_delete(result.output);
 		} else {
@@ -77,18 +98,22 @@ int main()
 	return 0;
 }
 
-long eval(mpc_ast_t *ast)
+struct lval eval(mpc_ast_t *ast)
 {
 	char *substr = strstr(ast->tag, "number");
 
-	if (substr)
-		return atoi(ast->contents);
-
-	char *op = NULL;
-	long x = 0;
+	if (substr) {
+		/*
+		 * Reference for errno: https://stackoverflow.com/a/46014661
+		 */
+		long num = strtol(ast->contents, NULL, 10);
+		return num < 0 ? lval_err(LERR_INVALID_NUM) : lval_num(num);
+	}
 
 	mpc_ast_t  **children = ast->children;
 	int children_num = ast->children_num;
+
+	struct lval x;
 
 	/*
 	 * Because we made the intial operator optional, we don't need to provide operator for the first number.
@@ -97,12 +122,12 @@ long eval(mpc_ast_t *ast)
 	 * Currently still not sure how the children_num calculated, but from the input of only number (without preceding operator), the result of children_num is 3. So when the children_num equal 3, we can just return the value directly.
 	 */
 	if (children_num == 3) {
-		x = atoi(children[1]->contents);
-		return x;
+		long num = strtol(children[1]->contents, NULL, 10);
+		return num < 0 ? lval_err(LERR_INVALID_NUM) : lval_num(num);
 	}
 
 	if (children_num >= 1) {
-		op = children[1]->contents;
+		char *op = children[1]->contents;
 		x = eval(children[2]);
 
 		int i = 3;
@@ -115,25 +140,77 @@ long eval(mpc_ast_t *ast)
 	return x;
 }
 
-long eval_op(long x, char *op, long y)
+struct lval eval_op(struct lval x, char *op, struct lval y)
 {
-	if (op == NULL)
-		return 0;
+	if (x.type == LVAL_ERR)
+		return x;
+
+	if (y.type == LVAL_ERR)
+		return y;
 
 	if (stringcmp(op, "+") == 0)
-		return x + y;
+		return lval_num(x.num + y.num);
 
 	if (stringcmp(op, "-") == 0)
-		return x - y;
+		return lval_num(x.num - y.num);
 
 	if (stringcmp(op, "*") == 0)
-		return x * y;
+		return lval_num(x.num * y.num);
 
-	if (stringcmp(op, "/") == 0)
-		return x / y;
+	if (stringcmp(op, "/") == 0) {
+		return y.num == 0
+		? lval_err(LERR_DIV_ZERO)
+		: lval_num(x.num / y.num);
+	}
 
 	if (stringcmp(op, "%") == 0)
-		return x % y;
+		return lval_num(x.num % y.num);
 
-	return 0;
+	return lval_err(LERR_INVALID_OP);
+
+}
+
+void lval_print(struct lval value)
+{
+	switch (value.type) {
+		case LVAL_NUM:
+			printf("%li\n", value.num);
+			break;
+
+		case LVAL_ERR:
+			const char *err = "Error: unrecognized error";
+
+			if (value.err == LERR_DIV_ZERO)
+				err = "Error: division by zero";
+
+			if (value.err == LERR_INVALID_OP)
+				err = "Error: invalid operator";
+
+			if (value.err == LERR_INVALID_NUM)
+				err = "Error: invalid number";
+
+			printf("%s\n", err);
+			break;
+
+		default:
+			printf("Unknown value type.\n");
+	}
+}
+
+struct lval lval_num(long x)
+{
+	struct lval value = {
+		.type = LVAL_NUM,
+		.num = x
+	};
+	return value;
+}
+
+struct lval lval_err(int x)
+{
+	struct lval value = {
+		.type = LVAL_ERR,
+		.err = x
+	};
+	return value;
 }
