@@ -3,13 +3,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include <editline/readline.h>
 
 /* Lisp value. */
 struct lval {
 	int type;
-	long num;
+	double num;
 	int err;
 };
 
@@ -27,7 +28,7 @@ enum lval_err {
 struct lval eval(mpc_ast_t *ast);
 struct lval eval_op(struct lval x, char *op, struct lval y);
 void lval_print(struct lval value);
-struct lval lval_num(long x);
+struct lval lval_num(double x);
 struct lval lval_err(int x);
 
 int main(int argc, char **argv)
@@ -48,7 +49,7 @@ int main(int argc, char **argv)
 
 	mpca_lang(
 		MPCA_LANG_DEFAULT,
-		"number: /-?\\d+([\\.,]\\d+)?/;"
+		"number: /-?\\d+(\\.\\d+)?/;"
 		"operator: '+' | '-' | '*' | '/' | '%';"
 		"expr: <number> | '(' <operator> <expr>+ ')';"
 		"sclisp: /^/ <operator>? <expr>+ /$/;",
@@ -106,8 +107,10 @@ struct lval eval(mpc_ast_t *ast)
 		/*
 		 * Reference for errno: https://stackoverflow.com/a/46014661
 		 */
-		long num = strtol(ast->contents, NULL, 10);
-		return num < 0 ? lval_err(LERR_INVALID_NUM) : lval_num(num);
+		double num = strtod(ast->contents, NULL);
+		return num == 0 && errno == ERANGE
+			? lval_err(LERR_INVALID_NUM)
+			: lval_num(num);
 	}
 
 	mpc_ast_t  **children = ast->children;
@@ -122,8 +125,10 @@ struct lval eval(mpc_ast_t *ast)
 	 * Currently still not sure how the children_num calculated, but from the input of only number (without preceding operator), the result of children_num is 3. So when the children_num equal 3, we can just return the value directly.
 	 */
 	if (children_num == 3) {
-		long num = strtol(children[1]->contents, NULL, 10);
-		return num < 0 ? lval_err(LERR_INVALID_NUM) : lval_num(num);
+		double num = strtod(children[1]->contents, NULL);
+		return num == 0 && errno == ERANGE
+			? lval_err(LERR_INVALID_NUM)
+			: lval_num(num);
 	}
 
 	if (children_num >= 1) {
@@ -163,8 +168,10 @@ struct lval eval_op(struct lval x, char *op, struct lval y)
 		: lval_num(x.num / y.num);
 	}
 
-	if (stringcmp(op, "%") == 0)
-		return lval_num(x.num % y.num);
+	if (stringcmp(op, "%") == 0) {
+		double modulo = fmod(x.num, y.num);
+		return lval_num(modulo);
+	}
 
 	return lval_err(LERR_INVALID_OP);
 
@@ -174,7 +181,7 @@ void lval_print(struct lval value)
 {
 	switch (value.type) {
 		case LVAL_NUM:
-			printf("%li\n", value.num);
+			printf("%.3lf\n", value.num);
 			break;
 
 		case LVAL_ERR:
@@ -197,7 +204,7 @@ void lval_print(struct lval value)
 	}
 }
 
-struct lval lval_num(long x)
+struct lval lval_num(double x)
 {
 	struct lval value = {
 		.type = LVAL_NUM,

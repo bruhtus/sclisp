@@ -2,7 +2,7 @@
 case "$1" in
   main)
     # only tested in arch linux.
-    gcc -l readline -o sclisp mpc.c sclisp.c
+    gcc -l readline -l m -o sclisp mpc.c sclisp.c
     ;;
   main-debug)
     # only tested in arch linux.
