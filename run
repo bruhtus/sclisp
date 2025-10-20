@@ -1,6 +1,6 @@
 #!/bin/sh
 # only tested in arch linux.
-compiler='gcc -pedantic -l readline -l m -o sclisp mpc.c sclisp.c'
+compiler='gcc -std=gnu11 -pedantic -l readline -l m -o sclisp mpc.c sclisp.c'
 
 case "$1" in
   main)
