@@ -179,22 +179,22 @@ struct lval eval_op(struct lval x, char *op, struct lval y)
 
 void lval_print(struct lval value)
 {
+	const char *err;
+
 	switch (value.type) {
 		case LVAL_NUM:
 			printf("%.3lf\n", value.num);
 			break;
 
 		case LVAL_ERR:
-			const char *err = "Error: unrecognized error";
-
 			if (value.err == LERR_DIV_ZERO)
 				err = "Error: division by zero";
-
-			if (value.err == LERR_INVALID_OP)
+			else if (value.err == LERR_INVALID_OP)
 				err = "Error: invalid operator";
-
-			if (value.err == LERR_INVALID_NUM)
+			else if (value.err == LERR_INVALID_NUM)
 				err = "Error: invalid number";
+			else
+				err = "Error: unrecognized error";
 
 			printf("%s\n", err);
 			break;
