@@ -7,22 +7,23 @@
 
 #include <editline/readline.h>
 
-/* Lisp value. */
-struct lval {
-	int type;
-	double num;
-	int err;
-};
-
 enum lval_type {
 	LVAL_NUM = 0,
 	LVAL_ERR = 1
 };
 
 enum lval_err {
-	LERR_DIV_ZERO = 0,
-	LERR_INVALID_OP = 1,
-	LERR_INVALID_NUM = 2
+	LERR_INVALID_OP = 0,
+	LERR_INVALID_NUM = 1,
+	LERR_DIV_ZERO = 2,
+	LERR_MODULO_NAN = 3
+};
+
+/* Lisp value. */
+struct lval {
+	int type;
+	double num;
+	int err;
 };
 
 struct lval eval(mpc_ast_t *ast);
@@ -164,13 +165,16 @@ struct lval eval_op(struct lval x, char *op, struct lval y)
 
 	if (stringcmp(op, "/") == 0) {
 		return y.num == 0
-		? lval_err(LERR_DIV_ZERO)
-		: lval_num(x.num / y.num);
+			? lval_err(LERR_DIV_ZERO)
+			: lval_num(x.num / y.num);
 	}
 
 	if (stringcmp(op, "%") == 0) {
 		double modulo = fmod(x.num, y.num);
-		return lval_num(modulo);
+
+		return isnan(modulo)
+			? lval_err(LERR_MODULO_NAN)
+			: lval_num(modulo);
 	}
 
 	return lval_err(LERR_INVALID_OP);
@@ -187,12 +191,14 @@ void lval_print(struct lval value)
 			break;
 
 		case LVAL_ERR:
-			if (value.err == LERR_DIV_ZERO)
-				err = "Error: division by zero";
-			else if (value.err == LERR_INVALID_OP)
+			if (value.err == LERR_INVALID_OP)
 				err = "Error: invalid operator";
 			else if (value.err == LERR_INVALID_NUM)
 				err = "Error: invalid number";
+			else if (value.err == LERR_DIV_ZERO)
+				err = "Error: division by zero";
+			else if (value.err == LERR_MODULO_NAN)
+				err = "Error: invalid modulo operation";
 			else
 				err = "Error: unrecognized error";
 
