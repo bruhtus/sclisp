@@ -21,16 +21,16 @@ enum lval_err {
 
 /* Lisp value. */
 struct lval {
-	int type;
+	enum lval_type type;
 	double num;
-	int err;
+	enum lval_err err;
 };
 
 struct lval eval(mpc_ast_t *ast);
 struct lval eval_op(struct lval x, char *op, struct lval y);
 void lval_print(struct lval value);
 struct lval lval_num(double x);
-struct lval lval_err(int x);
+struct lval lval_err(enum lval_err x);
 
 int main(int argc, char **argv)
 {
@@ -219,7 +219,7 @@ struct lval lval_num(double x)
 	return value;
 }
 
-struct lval lval_err(int x)
+struct lval lval_err(enum lval_err x)
 {
 	struct lval value = {
 		.type = LVAL_ERR,
