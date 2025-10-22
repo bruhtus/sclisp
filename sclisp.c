@@ -16,7 +16,8 @@ enum lval_err {
 	LERR_INVALID_OP = 0,
 	LERR_INVALID_NUM = 1,
 	LERR_DIV_ZERO = 2,
-	LERR_MODULO_NAN = 3
+	LERR_MODULO_NAN = 3,
+	LERR_POW_NAN = 4
 };
 
 /* Lisp value. */
@@ -51,7 +52,7 @@ int main(int argc, char **argv)
 	mpca_lang(
 		MPCA_LANG_DEFAULT,
 		"number: /-?\\d+(\\.\\d+)?/;"
-		"operator: '+' | '-' | '*' | '/' | '%';"
+		"operator: '+' | '-' | '*' | '/' | '%' | '^';"
 		"expr: <number> | '(' <operator> <expr>+ ')';"
 		"sclisp: /^/ <operator>? <expr>+ /$/;",
 		parsers_len, init_parsers
@@ -177,6 +178,14 @@ struct lval eval_op(struct lval x, char *op, struct lval y)
 			: lval_num(modulo);
 	}
 
+	if (stringcmp(op, "^") == 0) {
+		double power = pow(x.num, y.num);
+
+		return isnan(power)
+			? lval_err(LERR_POW_NAN)
+			: lval_num(power);
+	}
+
 	return lval_err(LERR_INVALID_OP);
 
 }
@@ -199,6 +208,8 @@ void lval_print(struct lval value)
 				err = "Error: division by zero";
 			else if (value.err == LERR_MODULO_NAN)
 				err = "Error: invalid modulo operation";
+			else if (value.err == LERR_POW_NAN)
+				err = "Error: invalid power operation";
 			else
 				err = "Error: unrecognized error";
 
