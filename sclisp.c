@@ -8,8 +8,8 @@
 #include <editline/readline.h>
 
 enum lval_type {
-	LVAL_NUM = 0,
-	LVAL_ERR = 1
+	LVAL_ERR = -1,
+	LVAL_NUM = 1
 };
 
 enum lval_err {
