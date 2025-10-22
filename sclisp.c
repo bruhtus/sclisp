@@ -62,10 +62,11 @@ int main(int argc, char **argv)
 	puts("Press ctrl-c, ctrl-d, exit command to exit\n");
 
 	char prompt[128] = "";
+	char *input;
 
 	while (1) {
 		sprintf(prompt, "sclisp> ");
-		char *input = readline(prompt);
+		input = readline(prompt);
 
 		if (input == NULL || stringcmp(input, "exit") == 0) {
 			free(input);
