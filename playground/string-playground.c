@@ -23,5 +23,16 @@ int main()
 	printf("c1: %s is size %d\n", c1, sizeof(c1));
 	printf("c2: %s is size %d\n", c2, sizeof(c2));
 
+	/*
+	 * strlen() calculates the length of the string but
+	 * exclude the null or zero terminator (\0). So the
+	 * actual length of the string, if we use strlen() to
+	 * calculate, is actually the return value of
+	 * strlen() + 1.
+	 */
+	printf("strlen c1: %d\n", strlen(c1));
+	printf("c1 last char: %p\n", c1[3]);
+	printf("strlen a2: %d\n", strlen(a2));
+
 	return 0;
 }
