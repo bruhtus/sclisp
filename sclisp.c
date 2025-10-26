@@ -9,11 +9,13 @@
 
 enum lval_type {
 	LVAL_ERR = -1,
-	LVAL_NUM = 1
+	LVAL_NUM = 1,
+	LVAL_SYM = 2,
+	LVAL_SEXPR = 3
 };
 
 enum lval_err {
-	LERR_INVALID_OP = 0,
+	LERR_INVALID_SYM = 0,
 	LERR_INVALID_NUM = 1,
 	LERR_DIV_ZERO = 2,
 	LERR_MODULO_NAN = 3,
@@ -24,25 +26,36 @@ enum lval_err {
 struct lval {
 	enum lval_type type;
 	double num;
-	enum lval_err err;
+	char *err;
+	char *sym;
+	int count;
+	struct lval **cell;
 };
 
-struct lval eval(mpc_ast_t *ast);
-struct lval eval_op(struct lval x, char *op, struct lval y);
-void lval_print(struct lval value);
-struct lval lval_num(double x);
-struct lval lval_err(enum lval_err x);
+struct lval *lval_read(mpc_ast_t *ast);
+void lval_println(struct lval *value);
+void lval_expr_print(struct lval *v, char open, char close);
+void lval_print(struct lval *value);
+struct lval *lval_add(struct lval *v1, struct lval *v2);
+void lval_del(struct lval *value);
+struct lval *lval_err(char *mes);
+struct lval *lval_read_num(mpc_ast_t *ast);
+struct lval *lval_num(double num);
+struct lval *lval_sym(char *sym);
+struct lval *lval_sexpr(void);
 
 int main(int argc, char **argv)
 {
 	mpc_parser_t *Number = mpc_new("number");
-	mpc_parser_t *Operator = mpc_new("operator");
+	mpc_parser_t *Symbol = mpc_new("symbol");
+	mpc_parser_t *Sexpr = mpc_new("sexpr");
 	mpc_parser_t *Expr = mpc_new("expr");
 	mpc_parser_t *Sclisp = mpc_new("sclisp");
 
 	mpc_parser_t *init_parsers[] = {
 		Number,
-		Operator,
+		Symbol,
+		Sexpr,
 		Expr,
 		Sclisp
 	};
@@ -52,9 +65,10 @@ int main(int argc, char **argv)
 	mpca_lang(
 		MPCA_LANG_DEFAULT,
 		"number: /-?\\d+(\\.\\d+)?/;"
-		"operator: '+' | '-' | '*' | '/' | '%' | '^';"
-		"expr: <number> | '(' <operator> <expr>+ ')';"
-		"sclisp: /^/ <operator>? <expr>+ /$/;",
+		"symbol: '+' | '-' | '*' | '/' | '%' | '^';"
+		"sexpr: '(' <expr>* ')';"
+		"expr: <number> | <symbol> | <sexpr>;"
+		"sclisp: /^/ <expr>* /$/;",
 		parsers_len, init_parsers
 	);
 
@@ -86,8 +100,9 @@ int main(int argc, char **argv)
 
 		if (parsed) {
 			mpc_ast_t *ast = result.output;
-			struct lval value = eval(ast);
-			lval_print(value);
+			struct lval *value = lval_read(ast);
+			lval_println(value);
+			lval_del(value);
 
 			mpc_ast_delete(result.output);
 		} else {
@@ -98,123 +113,83 @@ int main(int argc, char **argv)
 		free(input);
 	}
 
-	mpc_cleanup(4, Number, Operator, Expr, Sclisp);
+	mpc_cleanup(5, Number, Symbol, Sexpr, Expr, Sclisp);
 	return 0;
 }
 
-struct lval eval(mpc_ast_t *ast)
+struct lval *lval_read(mpc_ast_t *ast)
 {
-	char *substr = strstr(ast->tag, "number");
+	int i;
+	struct lval *num = NULL;
 
-	if (substr) {
-		/*
-		 * Reference for errno: https://stackoverflow.com/a/46014661
-		 */
-		double num = strtod(ast->contents, NULL);
-		return num == 0 && errno == ERANGE
-			? lval_err(LERR_INVALID_NUM)
-			: lval_num(num);
-	}
+	if (strstr(ast->tag, "number"))
+		return lval_read_num(ast);
 
-	mpc_ast_t  **children = ast->children;
-	int children_num = ast->children_num;
-
-	struct lval x;
+	if (strstr(ast->tag, "symbol"))
+		return lval_sym(ast->contents);
 
 	/*
-	 * Because we made the intial operator optional, we don't need to provide operator for the first number.
-	 * This break the calculation because the expected minimum children_num decreased.
-	 *
-	 * Currently still not sure how the children_num calculated, but from the input of only number (without preceding operator), the result of children_num is 3. So when the children_num equal 3, we can just return the value directly.
+	 * Symbol > is the root for the parser (?).
 	 */
-	if (children_num == 3) {
-		double num = strtod(children[1]->contents, NULL);
-		return num == 0 && errno == ERANGE
-			? lval_err(LERR_INVALID_NUM)
-			: lval_num(num);
+	if (stringcmp(ast->tag, ">") == 0
+		|| strstr(ast->tag, "sexpr"))
+		num = lval_sexpr();
+
+	for (i = 0; i < ast->children_num; i++) {
+		if (stringcmp(ast->children[i]->contents, "(") == 0
+			|| stringcmp(ast->children[i]->contents, ")") == 0
+			|| stringcmp(ast->children[i]->tag, "regex") == 0)
+			continue;
+
+		num = lval_add(
+			num,
+			lval_read(ast->children[i])
+		);
 	}
 
-	if (children_num >= 1) {
-		char *op = children[1]->contents;
-		x = eval(children[2]);
+	return num;
+}
 
-		int i = 3;
-		while (strstr(children[i]->tag, "expr")) {
-			x = eval_op(x, op, eval(children[i]));
-			i++;
+void lval_println(struct lval *value)
+{
+	lval_print(value);
+	putchar('\n');
+}
+
+void lval_expr_print(struct lval *v, char open, char close)
+{
+	int i;
+
+	putchar(open);
+
+	for (i = 0; i < v->count; i++) {
+		lval_print(v->cell[i]);
+
+		if (i != (v->count - 1)) {
+			putchar(' ');
 		}
 	}
 
-	return x;
+	putchar(close);
 }
 
-struct lval eval_op(struct lval x, char *op, struct lval y)
+void lval_print(struct lval *value)
 {
-	if (x.type == LVAL_ERR)
-		return x;
-
-	if (y.type == LVAL_ERR)
-		return y;
-
-	if (stringcmp(op, "+") == 0)
-		return lval_num(x.num + y.num);
-
-	if (stringcmp(op, "-") == 0)
-		return lval_num(x.num - y.num);
-
-	if (stringcmp(op, "*") == 0)
-		return lval_num(x.num * y.num);
-
-	if (stringcmp(op, "/") == 0) {
-		return y.num == 0
-			? lval_err(LERR_DIV_ZERO)
-			: lval_num(x.num / y.num);
-	}
-
-	if (stringcmp(op, "%") == 0) {
-		double modulo = fmod(x.num, y.num);
-
-		return isnan(modulo)
-			? lval_err(LERR_MODULO_NAN)
-			: lval_num(modulo);
-	}
-
-	if (stringcmp(op, "^") == 0) {
-		double power = pow(x.num, y.num);
-
-		return isnan(power)
-			? lval_err(LERR_POW_NAN)
-			: lval_num(power);
-	}
-
-	return lval_err(LERR_INVALID_OP);
-
-}
-
-void lval_print(struct lval value)
-{
-	const char *err;
-
-	switch (value.type) {
+	switch (value->type) {
 		case LVAL_NUM:
-			printf("%.3lf\n", value.num);
+			printf("%.3lf", value->num);
 			break;
 
 		case LVAL_ERR:
-			if (value.err == LERR_INVALID_OP)
-				err = "Error: invalid operator";
-			else if (value.err == LERR_INVALID_NUM)
-				err = "Error: invalid number";
-			else if (value.err == LERR_DIV_ZERO)
-				err = "Error: division by zero";
-			else if (value.err == LERR_MODULO_NAN)
-				err = "Error: invalid modulo operation";
-			else if (value.err == LERR_POW_NAN)
-				err = "Error: invalid power operation";
-			else
-				err = "Error: unrecognized error";
+			printf("Error: %s", value->err);
+			break;
 
-			printf("%s\n", err);
+		case LVAL_SYM:
+			printf("%s", value->sym);
+			break;
+
+		case LVAL_SEXPR:
+			lval_expr_print(value, '(', ')');
 			break;
 
 		default:
@@ -222,20 +197,96 @@ void lval_print(struct lval value)
 	}
 }
 
-struct lval lval_num(double x)
+struct lval *lval_add(struct lval *v1, struct lval *v2)
 {
-	struct lval value = {
-		.type = LVAL_NUM,
-		.num = x
-	};
+	v1->count++;
+
+	v1->cell = realloc(
+		v1->cell,
+		sizeof(struct lval *) * v1->count
+	);
+
+	v1->cell[v1->count - 1] = v2;
+	return v1;
+}
+
+void lval_del(struct lval *value)
+{
+	int i;
+
+	switch (value->type) {
+		case LVAL_NUM:
+			break;
+
+		case LVAL_ERR:
+			free(value->err);
+			break;
+
+		case LVAL_SYM:
+			free(value->sym);
+			break;
+
+		case LVAL_SEXPR:
+			for (i = 0; i < value->count; i++) {
+				lval_del(value->cell[i]);
+			}
+
+			free(value->cell);
+			value->cell = NULL;
+			break;
+	}
+
+	free(value);
+}
+
+struct lval *lval_err(char *mes)
+{
+	struct lval *value = malloc(sizeof(struct lval));
+
+	value->type = LVAL_ERR;
+	value->err = malloc(strlen(mes) + 1);
+	strcpy(value->err, mes);
+
 	return value;
 }
 
-struct lval lval_err(enum lval_err x)
+struct lval *lval_read_num(mpc_ast_t *ast)
 {
-	struct lval value = {
-		.type = LVAL_ERR,
-		.err = x
-	};
+	double num = strtod(ast->contents, NULL);
+
+	return num == 0 && errno == ERANGE
+		? lval_err("invalid number")
+		: lval_num(num);
+}
+
+struct lval *lval_num(double num)
+{
+	struct lval *value = malloc(sizeof(struct lval));
+
+	value->type = LVAL_NUM;
+	value->num = num;
+
+	return value;
+}
+
+struct lval *lval_sym(char *sym)
+{
+	struct lval *value = malloc(sizeof(struct lval));
+
+	value->type = LVAL_SYM;
+	value->sym = malloc(strlen(sym) + 1);
+	strcpy(value->sym, sym);
+
+	return value;
+}
+
+struct lval *lval_sexpr(void)
+{
+	struct lval *value = malloc(sizeof(struct lval));
+
+	value->type = LVAL_SEXPR;
+	value->count = 0;
+	value->cell = NULL;
+
 	return value;
 }
