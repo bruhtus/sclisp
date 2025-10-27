@@ -5,8 +5,17 @@
  * To include shared object in binary, we can use -static flag
  * like this:
  * gcc -static -o playground/printf-without-stdlib playground/printf-without-stdlib.c
+ *
+ * We can decrease the size when using -static flag
+ * by using -nostdlib flag like this:
+ * gcc -nostdlib -static -o playground/printf-without-stdlib playground/printf-without-stdlib.c
+ *
+ * If there's an error about `undefined reference to `__stack_chk_fail'`,
+ * we can add -fstack-protector to exclude code for checking buffer overflows
+ * like this:
+ * gcc -nostdlib -static -fstack-protector -o playground/printf-without-stdlib playground/printf-without-stdlib.c
  */
-int main(void)
+int _start(void)
 {
 	const char *holy = "Holy C!\n";
 
@@ -26,5 +35,12 @@ int main(void)
 		: "%rax", "%rdi", "%rsi", "%rdx"
 	);
 
-	return 0;
+	asm volatile (
+		"mov $60, %%rax\n\t" // SYS_EXIT.
+		"mov $0, %%rdi\n\t" // exit code = 0.
+		"syscall\n\t"
+		:
+		:
+		: "%rax", "%rdi"
+	);
 }
