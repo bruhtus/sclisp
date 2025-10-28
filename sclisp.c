@@ -137,29 +137,18 @@ struct lval *lval_eval_sexpr(struct lval *value)
 {
 	int i;
 
-	for (i = 0; i < value->count; i++) {
-		value->cell[i] = lval_eval(value->cell[i]);
-	}
-
-	/*
-	 * TODO: try put this in the same for loop above.
-	 */
-	for (i = 0; i < value->count; i++) {
-		if (value->cell[i]->type == LVAL_ERR)
-			return lval_take(value, i);
-	}
-
-	/*
-	 * TODO: put this first.
-	 */
 	if (value->count == 0)
 		return value;
 
-	/*
-	 * TODO: put this first.
-	 */
 	if (value->count == 1)
 		return lval_take(value, 0);
+
+	for (i = 0; i < value->count; i++) {
+		value->cell[i] = lval_eval(value->cell[i]);
+
+		if (value->cell[i]->type == LVAL_ERR)
+			return lval_take(value, i);
+	}
 
 	struct lval *first = lval_pop(value, 0);
 
