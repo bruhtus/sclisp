@@ -32,6 +32,11 @@ struct lval {
 	struct lval **cell;
 };
 
+struct lval *lval_eval(struct lval *value);
+struct lval *lval_eval_sexpr(struct lval *value);
+struct lval *builtin_op(struct lval *value, char *op);
+struct lval *lval_take(struct lval *value, int i);
+struct lval *lval_pop(struct lval *value, int i);
 struct lval *lval_read(mpc_ast_t *ast);
 void lval_println(struct lval *value);
 void lval_expr_print(struct lval *v, char open, char close);
@@ -100,9 +105,12 @@ int main(int argc, char **argv)
 
 		if (parsed) {
 			mpc_ast_t *ast = result.output;
+
 			struct lval *value = lval_read(ast);
-			lval_println(value);
-			lval_del(value);
+			struct lval *eval = lval_eval(value);
+
+			lval_println(eval);
+			lval_del(eval);
 
 			mpc_ast_delete(result.output);
 		} else {
@@ -117,10 +125,143 @@ int main(int argc, char **argv)
 	return 0;
 }
 
+struct lval *lval_eval(struct lval *value)
+{
+	if (value->type == LVAL_SEXPR)
+		return lval_eval_sexpr(value);
+
+	return value;
+}
+
+struct lval *lval_eval_sexpr(struct lval *value)
+{
+	int i;
+
+	for (i = 0; i < value->count; i++) {
+		value->cell[i] = lval_eval(value->cell[i]);
+	}
+
+	/*
+	 * TODO: try put this in the same for loop above.
+	 */
+	for (i = 0; i < value->count; i++) {
+		if (value->cell[i]->type == LVAL_ERR)
+			return lval_take(value, i);
+	}
+
+	/*
+	 * TODO: put this first.
+	 */
+	if (value->count == 0)
+		return value;
+
+	/*
+	 * TODO: put this first.
+	 */
+	if (value->count == 1)
+		return lval_take(value, 0);
+
+	struct lval *first = lval_pop(value, 0);
+
+	if (first->type != LVAL_SYM) {
+		lval_del(first);
+		lval_del(value);
+		return lval_err(
+			"s-expression does not start with symbol"
+		);
+	}
+
+	struct lval *result = builtin_op(value, first->sym);
+
+	lval_del(first);
+	return result;
+}
+
+struct lval *builtin_op(struct lval *value, char *op)
+{
+	int i;
+
+	for (i = 0; i < value->count; i++) {
+		if (value->cell[i]->type != LVAL_NUM) {
+			lval_del(value);
+			return lval_err(
+				"cannot operate on non-number"
+			);
+		}
+	}
+
+	struct lval *first = lval_pop(value, 0);
+
+	if ((stringcmp(op, "-") == 0) && value->count == 0) {
+		first->num = -first->num;
+	}
+
+	while (value->count > 0) {
+		struct lval *next = lval_pop(value, 0);
+
+		if (stringcmp(op, "+") == 0)
+			first->num += next->num;
+
+		if (stringcmp(op, "-") == 0)
+			first->num -= next->num;
+
+		if (stringcmp(op, "*") == 0)
+			first->num *= next->num;
+
+		if (stringcmp(op, "/") == 0) {
+			if (next->num == 0) {
+				lval_del(first);
+				lval_del(next);
+
+				first = lval_err(
+					"division by zero"
+				);
+				break;
+			}
+
+			first->num /= next->num;
+		}
+
+		// TODO: add modulo and power operator.
+		lval_del(next);
+	}
+
+	lval_del(value);
+	return first;
+}
+
+struct lval *lval_take(struct lval *value, int i)
+{
+	struct lval *item = lval_pop(value, i);
+
+	lval_del(value);
+	return item;
+}
+
+struct lval *lval_pop(struct lval *value, int i)
+{
+	struct lval *item = value->cell[i];
+
+	memmove(
+		&value->cell[i],
+		&value->cell[i+1],
+		sizeof(struct lval *) * (value->count - i - 1)
+	);
+
+	value->count--;
+
+	value->cell = realloc(
+		value->cell,
+		sizeof(struct lval *) * value->count
+	);
+
+	return item;
+}
+
 struct lval *lval_read(mpc_ast_t *ast)
 {
 	int i;
-	struct lval *num = NULL;
+	struct lval *value = NULL;
 
 	if (strstr(ast->tag, "number"))
 		return lval_read_num(ast);
@@ -133,7 +274,7 @@ struct lval *lval_read(mpc_ast_t *ast)
 	 */
 	if (stringcmp(ast->tag, ">") == 0
 		|| strstr(ast->tag, "sexpr"))
-		num = lval_sexpr();
+		value = lval_sexpr();
 
 	for (i = 0; i < ast->children_num; i++) {
 		if (stringcmp(ast->children[i]->contents, "(") == 0
@@ -141,13 +282,13 @@ struct lval *lval_read(mpc_ast_t *ast)
 			|| stringcmp(ast->children[i]->tag, "regex") == 0)
 			continue;
 
-		num = lval_add(
-			num,
+		value = lval_add(
+			value,
 			lval_read(ast->children[i])
 		);
 	}
 
-	return num;
+	return value;
 }
 
 void lval_println(struct lval *value)
