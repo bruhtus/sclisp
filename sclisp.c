@@ -106,8 +106,9 @@ int main(void)
 		if (parsed) {
 			mpc_ast_t *ast = result.output;
 
-			struct lval *value = lval_read(ast);
-			struct lval *eval = lval_eval(value);
+			struct lval *eval = lval_eval(
+				lval_read(ast)
+			);
 
 			lval_println(eval);
 			lval_del(eval);
