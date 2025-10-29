@@ -43,13 +43,13 @@ void lval_expr_print(struct lval *v, char open, char close);
 void lval_print(struct lval *value);
 struct lval *lval_add(struct lval *v1, struct lval *v2);
 void lval_del(struct lval *value);
-struct lval *lval_err(char *mes);
+struct lval *lval_err(const char *mes);
 struct lval *lval_read_num(mpc_ast_t *ast);
 struct lval *lval_num(double num);
 struct lval *lval_sym(char *sym);
 struct lval *lval_sexpr(void);
 
-int main(int argc, char **argv)
+int main(void)
 {
 	mpc_parser_t *Number = mpc_new("number");
 	mpc_parser_t *Symbol = mpc_new("symbol");
@@ -390,7 +390,7 @@ void lval_del(struct lval *value)
 	free(value);
 }
 
-struct lval *lval_err(char *mes)
+struct lval *lval_err(const char *mes)
 {
 	struct lval *value = malloc(sizeof(struct lval));
 
