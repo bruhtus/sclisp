@@ -211,7 +211,28 @@ struct lval *builtin_op(struct lval *value, char *op)
 			first->num /= next->num;
 		}
 
-		// TODO: add modulo and power operator.
+		if (stringcmp(op, "%") == 0) {
+			double modulo = fmod(first->num, next->num);
+
+			if (isnan(modulo)) {
+				first = lval_err("invalid modulo operation");
+				break;
+			}
+
+			first->num = modulo;
+		}
+
+		if (stringcmp(op, "^") == 0) {
+			double power = pow(first->num, next->num);
+
+			if (isnan(power)) {
+				first = lval_err("invalid power operation");
+				break;
+			}
+
+			first->num = power;
+		}
+
 		lval_del(next);
 	}
 
