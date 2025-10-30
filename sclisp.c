@@ -393,7 +393,7 @@ void lval_del(struct lval *value)
 
 struct lval *lval_err(const char *mes)
 {
-	struct lval *value = malloc(sizeof(struct lval));
+	struct lval *value = malloc(sizeof(*value));
 
 	value->type = LVAL_ERR;
 	value->err = malloc(strlen(mes) + 1);
@@ -413,7 +413,7 @@ struct lval *lval_read_num(mpc_ast_t *ast)
 
 struct lval *lval_num(double num)
 {
-	struct lval *value = malloc(sizeof(struct lval));
+	struct lval *value = malloc(sizeof(*value));
 
 	value->type = LVAL_NUM;
 	value->num = num;
@@ -423,7 +423,7 @@ struct lval *lval_num(double num)
 
 struct lval *lval_sym(char *sym)
 {
-	struct lval *value = malloc(sizeof(struct lval));
+	struct lval *value = malloc(sizeof(*value));
 
 	value->type = LVAL_SYM;
 	value->sym = malloc(strlen(sym) + 1);
@@ -434,7 +434,7 @@ struct lval *lval_sym(char *sym)
 
 struct lval *lval_sexpr(void)
 {
-	struct lval *value = malloc(sizeof(struct lval));
+	struct lval *value = malloc(sizeof(*value));
 
 	value->type = LVAL_SEXPR;
 	value->count = 0;
