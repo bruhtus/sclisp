@@ -34,8 +34,34 @@ void release(int **p);
  */
 int main(void)
 {
-	int *p = malloc(sizeof(int));
+	/*
+	 * sizeof is not a function but an unary operator,
+	 * like +69 or -42, that produce the size (in bytes)
+	 * of its operand during compile time.
+	 *
+	 * The compiler knows that p is a pointer to int,
+	 * hence *p would be an int type. And from that,
+	 * we get the size of int type.
+	 *
+	 * This is also true for struct as compiler already
+	 * know the size of the struct from the struct
+	 * definition.
+	 *
+	 * References:
+	 * - https://stackoverflow.com/a/605858
+	 * - https://stackoverflow.com/q/73653971
+	 */
+	int *p = malloc(sizeof(*p));
+	printf(
+		"sizeof(*p): %zu, sizeof(int): %zu\n\n",
+		sizeof(*p),
+		sizeof(int)
+	);
+
 	printf("init malloc: %p\n", p);
+
+	*p = 69;
+	printf("p value: %d\n", *p);
 
 	middleware(&p);
 	printf("release malloc: %p\n", p);
