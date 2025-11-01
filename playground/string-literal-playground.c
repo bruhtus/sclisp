@@ -24,8 +24,51 @@ int main(void)
 	str = "anu";
 	printf("str 3: %p\n", str);
 
-	str = "an";
+	str = "nganu";
 	printf("str 4: %p\n", str);
+
+	printf(
+		"first character: %c, %c, %p\n",
+		*(str + 0),
+		*str,
+		str
+	);
+
+	printf(
+		"first character ASCII hexadecimal: %p\n",
+		*str
+	);
+
+	/*
+	 * Because we are using *str, it means that we are
+	 * accessing one character at a time and keep in mind
+	 * that string is an array of characters with
+	 * null terminator (\0), and null terminator
+	 * can be considered as zero which is false
+	 * in conditional check. So the looping below
+	 * basically check if the current character is null
+	 * terminator or not. And if it's a null terminator,
+	 * it won't continue the while loop.
+	 *
+	 * The str++ means that we are advancing to the next
+	 * character, like i++ in for loop.
+	 *
+	 * Notice how we are printing the string character
+	 * in this loop? As we go on the loop, it seems like
+	 * the actual string literal get changed until we
+	 * found null terminator.
+	 */
+	while (*str) {
+		str++;
+		printf(
+			"character: %s, pointer: %p, is null terminator? %d\n",
+			str,
+			str,
+			*str == '\0'
+		);
+	}
+
+	printf("after while loop: %s\n", str);
 
 	return 0;
 }
