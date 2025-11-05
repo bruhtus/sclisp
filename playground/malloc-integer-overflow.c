@@ -44,6 +44,24 @@ int main(void)
 	printf("malloc not overflow: %p\n", p);
 	printf("size not overflow: %u\n", anu);
 
+	/*
+	 * Because of sequence point, the expression anu++
+	 * will be completed first before entering the
+	 * malloc().
+	 *
+	 * That's why variable anu will have new value before
+	 * entering malloc().
+	 *
+	 * A sequence point is any point in a program where it
+	 * is guaranteed that all side effects of previous
+	 * evaluations are completed, and no side effects from
+	 * the following evaluations is performed yet.
+	 *
+	 * References:
+	 * - https://en.wikipedia.org/wiki/Sequence_point
+	 * - https://c-faq.com/expr/seqpoints.html
+	 * - https://en.cppreference.com/w/c/language/eval_order.html
+	 */
 	p = malloc(anu++);
 
 	printf("malloc overflow: %p\n", p);
