@@ -51,5 +51,8 @@ int main(void)
 	unsigned int g = a + a;
 	printf("overflow 6: %u\n", g);
 
+	unsigned int db = 3735928559;
+	printf("hexadecimal number: 0x%x\n", db);
+
 	return 0;
 }
