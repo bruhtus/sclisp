@@ -37,16 +37,29 @@ int main(void)
 	printf("itu: %ld\n", itu);
 
 	/*
-	 * Trying to replicate the overflow using
-	 * short integer value, but it seems like this does
-	 * not produce an overflow (?).
+	 * Here's another example using short integer with
+	 * printf().
 	 *
-	 * Still not sure why it's different from integer
-	 * and long integer.
+	 * The example with short integer is different
+	 * from previous example because the overflow
+	 * happen on the printf() evaluation instead of
+	 * b + 1 evaluation.
+	 *
+	 * Why the overflow not happen on b + 1 evaluation?
+	 * Because 1 is an integer type. What happen here
+	 * is that we have integral promotion of short integer
+	 * to integer. The short integer type of b variable
+	 * has change to integer type to match the type
+	 * of value 1. So the result of b + 1 is integer
+	 * value, and not short integer value.
+	 *
+	 * The only way i can think of to create an integer
+	 * overflow scenario using short integer is using
+	 * printf() with short integer format specifier.
 	 */
 	short b = SHRT_MAX;
 	int ini = b + 1;
-	printf("ini: %d\n", ini);
+	printf("ini: %hd\n", ini);
 
 	/*
 	 * This is not integer overflow but this is another
