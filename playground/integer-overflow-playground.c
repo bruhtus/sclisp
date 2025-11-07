@@ -56,6 +56,9 @@ int main(void)
 	 * The only way i can think of to create an integer
 	 * overflow scenario using short integer is using
 	 * printf() with short integer format specifier.
+	 *
+	 * Reference about usual arithmetic conversions:
+	 * https://port70.net/~nsz/c/c99/n1256.html#6.3.1.8
 	 */
 	short b = SHRT_MAX;
 	int ini = b + 1;
