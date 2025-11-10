@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <limits.h>
 
 /*
  * Since every assignment is more than the maximum value
@@ -22,21 +23,21 @@ int main(void)
 		"i = %d (0x%x, %d bits)\n",
 		i,
 		i,
-		sizeof(i) * 8
+		sizeof(i) * CHAR_BIT
 	);
 
 	printf(
 		"s = %d (0x%x, %d bits)\n",
 		s,
 		s,
-		sizeof(s) * 8
+		sizeof(s) * CHAR_BIT
 	);
 
 	printf(
 		"c = %d (0x%x, %d bits)\n",
 		c,
 		c,
-		sizeof(c) * 8
+		sizeof(c) * CHAR_BIT
 	);
 
 	printf(
