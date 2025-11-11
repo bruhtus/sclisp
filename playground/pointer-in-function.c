@@ -37,6 +37,11 @@ int main(void)
 
 void changed_pointer(int *p)
 {
+	printf(
+		"p pointer stored changed_pointer: %p\n",
+		&p
+	);
+
 	int a = 42;
 	p = &a;
 	printf("p change pointer: %p\n", p);
@@ -44,6 +49,11 @@ void changed_pointer(int *p)
 
 void changed_value(int *p)
 {
+	printf(
+		"p pointer stored changed_value: %p\n",
+		&p
+	);
+
 	*p = 42;
 	printf("p change value: %d\n", *p);
 }
