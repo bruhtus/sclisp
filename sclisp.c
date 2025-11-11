@@ -374,7 +374,6 @@ void lval_del(struct lval *value)
 			break;
 
 		case LVAL_SYM:
-			free(value->sym);
 			break;
 
 		case LVAL_SEXPR:
@@ -435,8 +434,7 @@ struct lval *lval_sym(char *sym)
 	struct lval *value = malloc(sizeof(*value));
 
 	value->type = LVAL_SYM;
-	value->sym = malloc(strlen(sym) + 1);
-	strcpy(value->sym, sym);
+	value->sym = sym;
 
 	return value;
 }
