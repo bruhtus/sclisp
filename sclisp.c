@@ -26,7 +26,7 @@ enum lval_err {
 struct lval {
 	enum lval_type type;
 	double num;
-	char *err;
+	const char *err;
 	char *sym;
 	int count;
 	struct lval **cell;
@@ -371,7 +371,6 @@ void lval_del(struct lval *value)
 			break;
 
 		case LVAL_ERR:
-			free(value->err);
 			break;
 
 		case LVAL_SYM:
@@ -396,8 +395,18 @@ struct lval *lval_err(const char *mes)
 	struct lval *value = malloc(sizeof(*value));
 
 	value->type = LVAL_ERR;
-	value->err = malloc(strlen(mes) + 1);
-	strcpy(value->err, mes);
+
+	/*
+	 * We can directly use the string literal because
+	 * we know the value before run-time (we give the
+	 * value in the source code), so we don't
+	 * need to use malloc() and strcpy().
+	 *
+	 * References:
+	 * - https://stackoverflow.com/a/55931977
+	 * - https://stackoverflow.com/a/55723074
+	 */
+	value->err = mes;
 
 	return value;
 }
