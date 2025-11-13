@@ -181,6 +181,10 @@ struct lval *builtin_op(struct lval *value, char *op)
 	for (i = 0; i < value->count; i++) {
 		struct lval *cell = value->cell[i];
 
+		/*
+		 * We are passing the value of cell, which
+		 * is a memory address.
+		 */
 		if (cell->type == LVAL_MALLOC_FAILED)
 			return cell;
 
