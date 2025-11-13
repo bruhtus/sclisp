@@ -155,6 +155,11 @@ struct lval *lval_eval_sexpr(struct lval *value)
 
 	struct lval *first = lval_pop(value, 0);
 
+	if (first->type == LVAL_MALLOC_FAILED) {
+		lval_del(value);
+		return first;
+	}
+
 	if (first->type != LVAL_SYM) {
 		lval_del(first);
 		lval_del(value);
@@ -174,7 +179,12 @@ struct lval *builtin_op(struct lval *value, char *op)
 	int i;
 
 	for (i = 0; i < value->count; i++) {
-		if (value->cell[i]->type != LVAL_NUM) {
+		struct lval *cell = value->cell[i];
+
+		if (cell->type == LVAL_MALLOC_FAILED)
+			return cell;
+
+		if (cell->type != LVAL_NUM) {
 			lval_del(value);
 			return lval_err(
 				"cannot operate on non-number"
