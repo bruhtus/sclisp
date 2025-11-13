@@ -3,7 +3,7 @@
 
 compiler='gcc -std=gnu11 -pedantic -Wall -Wextra -Wshadow -Wwrite-strings'
 
-main_compiler="$compiler -l readline -l m -o sclisp sclisp.c lib/mpc.a"
+main_compiler="$compiler -l readline -l m -o sclisp utils.c sclisp.c lib/mpc.a"
 
 # Reference:
 # https://dev.to/iamkhalil42/all-you-need-to-know-about-c-static-libraries-1o0b
