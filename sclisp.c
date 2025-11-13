@@ -143,15 +143,15 @@ struct lval *lval_eval_sexpr(struct lval *value)
 	if (value->count == 0)
 		return value;
 
-	if (value->count == 1)
-		return lval_take(value, 0);
-
 	for (i = 0; i < value->count; i++) {
 		value->cell[i] = lval_eval(value->cell[i]);
 
 		if (value->cell[i]->type == LVAL_ERR)
 			return lval_take(value, i);
 	}
+
+	if (value->count == 1)
+		return lval_take(value, 0);
 
 	struct lval *first = lval_pop(value, 0);
 
