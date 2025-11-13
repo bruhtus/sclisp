@@ -8,6 +8,7 @@
 #include <editline/readline.h>
 
 enum lval_type {
+	LVAL_MALLOC_FAILED = -2,
 	LVAL_ERR = -1,
 	LVAL_NUM = 1,
 	LVAL_SYM = 2,
@@ -48,6 +49,7 @@ struct lval *lval_read_num(mpc_ast_t *ast);
 struct lval *lval_num(double num);
 struct lval *lval_sym(char *sym);
 struct lval *lval_sexpr(void);
+struct lval *malloc_err(void);
 
 int main(void)
 {
@@ -333,6 +335,7 @@ void lval_print(struct lval *value)
 			break;
 
 		case LVAL_ERR:
+		case LVAL_MALLOC_FAILED:
 			printf("Error: %s", value->err);
 			break;
 
@@ -367,6 +370,9 @@ void lval_del(struct lval *value)
 	int i;
 
 	switch (value->type) {
+		case LVAL_MALLOC_FAILED:
+			return;
+
 		case LVAL_NUM:
 			break;
 
@@ -392,6 +398,10 @@ void lval_del(struct lval *value)
 struct lval *lval_err(const char *mes)
 {
 	struct lval *value = malloc(sizeof(*value));
+
+	if (value == NULL) {
+		return malloc_err();
+	}
 
 	value->type = LVAL_ERR;
 
@@ -423,6 +433,10 @@ struct lval *lval_num(double num)
 {
 	struct lval *value = malloc(sizeof(*value));
 
+	if (value == NULL) {
+		return malloc_err();
+	}
+
 	value->type = LVAL_NUM;
 	value->num = num;
 
@@ -432,6 +446,10 @@ struct lval *lval_num(double num)
 struct lval *lval_sym(char *sym)
 {
 	struct lval *value = malloc(sizeof(*value));
+
+	if (value == NULL) {
+		return malloc_err();
+	}
 
 	value->type = LVAL_SYM;
 	value->sym = sym;
@@ -443,9 +461,34 @@ struct lval *lval_sexpr(void)
 {
 	struct lval *value = malloc(sizeof(*value));
 
+	if (value == NULL) {
+		return malloc_err();
+	}
+
 	value->type = LVAL_SEXPR;
 	value->count = 0;
 	value->cell = NULL;
 
 	return value;
+}
+
+struct lval *malloc_err(void)
+{
+	/*
+	 * Static variable or function must be
+	 * resolved at compile-time, so we can't use
+	 * another variable or return value of another
+	 * function call.
+	 *
+	 * References:
+	 * - https://software.codidact.com/posts/285050
+	 * - https://web.archive.org/web/20080624102132/http://www.space.unibe.ch/comp_doc/c_manual/C/CONCEPT/storage_class.html
+	 * - https://web.archive.org/web/20080624094524/http://www.space.unibe.ch/comp_doc/c_manual/C/SYNTAX/static.htm
+	 * - https://stackoverflow.com/a/2929077
+	 */
+	static struct lval malloc_err;
+	malloc_err.type = LVAL_MALLOC_FAILED;
+	malloc_err.err = "malloc failed";
+
+	return &malloc_err;
 }
