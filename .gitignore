@@ -1,2 +1,3 @@
+mpc.o
 playground/*
 !playground/*.c

@@ -1,13 +1,27 @@
 #!/bin/sh
 # only tested in arch linux.
-compiler='gcc -std=gnu11 -pedantic -Wall -Wextra -Wshadow -Wwrite-strings -l readline -l m -o sclisp mpc.c sclisp.c'
+
+compiler='gcc -std=gnu11 -pedantic -Wall -Wextra -Wshadow -Wwrite-strings'
+
+main_compiler="$compiler -l readline -l m -o sclisp sclisp.c lib/mpc.a"
+
+# Reference:
+# https://dev.to/iamkhalil42/all-you-need-to-know-about-c-static-libraries-1o0b
+mpc_compiler="$compiler -fpic -c mpc.c"
+mpc_static='ar -r lib/mpc.a mpc.o'
 
 case "$1" in
   main)
-    $compiler
+    $main_compiler
     ;;
   main-debug)
-    $compiler -ggdb
+    $main_compiler -ggdb
+    ;;
+  mpc)
+    # To list the names of object files,
+    # we can use `ar -t mpc.a`.
+    $mpc_compiler
+    $mpc_static
     ;;
   playground)
     gcc -l readline -o playground playground.c
