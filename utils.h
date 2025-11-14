@@ -16,7 +16,17 @@ enum lval_err {
 	LERR_POW_NAN = 4
 };
 
-/* Lisp value. */
+/*
+ * Lisp value.
+ *
+ * The limit of double value is DBL_MAX from float.h.
+ *
+ * To reproduce the double overflow, we can do:
+ * DBL_MAX + 1E+292
+ *
+ * Reference:
+ * https://stackoverflow.com/a/37830627
+ */
 struct lval {
 	enum lval_type type;
 	double num;
