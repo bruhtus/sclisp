@@ -3728,7 +3728,7 @@ static mpc_val_t *mpca_stmt_list_apply_to(mpc_val_t *x, void *s) {
     if (left->type == MPC_TYPE_FAIL) {
       free(x);
       fprintf(stderr, "Parser not found: %s\n", stmt->ident);
-      return NULL;
+      exit(-1);
     }
 
     if (st->flags & MPCA_LANG_PREDICTIVE) { stmt->grammar = mpc_predictive(stmt->grammar); }
