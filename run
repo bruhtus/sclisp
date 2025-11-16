@@ -38,6 +38,14 @@ case "$1" in
     readelf --segments playground
     ;;
   *)
-    echo "Usage: $0 main | playground"
+    printf "%s\n\n%s\n" "Usage: $0 SUBCOMMANDS" "SUBCOMMANDS:
+    - main
+    - main-debug
+    - mpc
+    - playground
+    - playground-debug
+    - playground-objdump
+    - playground-readelf-segments
+    "
     ;;
 esac
