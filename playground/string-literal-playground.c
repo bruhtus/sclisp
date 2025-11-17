@@ -70,5 +70,45 @@ int main(void)
 
 	printf("after while loop: %s\n", str);
 
+	/*
+	 * The snipet below is different from
+	 * char *itu = "anu";
+	 * because itu variable points to anu array variable
+	 * which is saved in the stack. While literal string,
+	 * use the double quote like "anu" is usually saved
+	 * in read-only segments of memory (depends on
+	 * implementation of the compiler).
+	 *
+	 * Here's the gist of it:
+	 * - anu variable is saved in the stack.
+	 * - itu is a pointer to anu variable memory address.
+	 * - We can change the character of itu variable
+	 *   because the data is saved in the stack, instead
+	 *   of in the read-only segments of memory.
+	 */
+	char anu[] = "anu";
+	char *itu = anu;
+	itu[0] = 'i';
+
+	/*
+	 * If we change the memory address in pointer itu
+	 * to string literal "itu", we can't change the
+	 * character because now itu variable points to
+	 * read-only segments of memory.
+	 *
+	 * So if we do
+	 * itu[0] = 'a';
+	 * after the statement below, we will get segmentation
+	 * fault because we are trying to access memory we
+	 * don't have access.
+	 *
+	 * The only way to change the value is replacing the
+	 * __memory address__ in pointer itu with something
+	 * else.
+	 */
+	itu = "itu";
+
+	printf("itu: %s\n", itu);
+
 	return 0;
 }
