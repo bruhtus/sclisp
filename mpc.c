@@ -1653,9 +1653,13 @@ void mpc_cleanup(int n, ...) {
 
   va_list va;
   va_start(va, n);
-  for (i = 0; i < n; i++) { list[i] = va_arg(va, mpc_parser_t*); }
-  for (i = 0; i < n; i++) { mpc_undefine(list[i]); }
-  for (i = 0; i < n; i++) { mpc_delete(list[i]); }
+
+  for (i = 0; i < n; i++) {
+    list[i] = va_arg(va, mpc_parser_t*);
+    mpc_undefine(list[i]);
+    mpc_delete(list[i]);
+  }
+
   va_end(va);
 
   free(list);
