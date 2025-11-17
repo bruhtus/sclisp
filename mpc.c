@@ -1647,22 +1647,13 @@ mpc_parser_t *mpc_define(mpc_parser_t *p, mpc_parser_t *a) {
   return p;
 }
 
-void mpc_cleanup(int n, ...) {
+void mpc_cleanup(int n, mpc_parser_t *parsers[]) {
   int i;
-  mpc_parser_t **list = malloc(sizeof(mpc_parser_t*) * n);
-
-  va_list va;
-  va_start(va, n);
 
   for (i = 0; i < n; i++) {
-    list[i] = va_arg(va, mpc_parser_t*);
-    mpc_undefine(list[i]);
-    mpc_delete(list[i]);
+    mpc_undefine(parsers[i]);
+    mpc_delete(parsers[i]);
   }
-
-  va_end(va);
-
-  free(list);
 }
 
 mpc_parser_t *mpc_pass(void) {
@@ -2486,7 +2477,18 @@ mpc_parser_t *mpc_re_mode(const char *re, int mode) {
     r.output = err_out;
   }
 
-  mpc_cleanup(6, RegexEnclose, Regex, Term, Factor, Base, Range);
+  mpc_parser_t *parsers[] = {
+    RegexEnclose,
+    Regex,
+    Term,
+    Factor,
+    Base,
+    Range
+  };
+
+  int parsers_len = sizeof(parsers) / sizeof(parsers[0]);
+
+  mpc_cleanup(parsers_len, parsers);
 
   mpc_optimise(r.output);
 
@@ -3645,7 +3647,17 @@ mpc_parser_t *mpca_grammar_st(const char *grammar, mpca_grammar_st_t *st) {
     r.output = err_out;
   }
 
-  mpc_cleanup(5, GrammarTotal, Grammar, Term, Factor, Base);
+  mpc_parser_t *parsers[] = {
+    GrammarTotal,
+    Grammar,
+    Term,
+    Factor,
+    Base
+  };
+
+  int parsers_len = sizeof(parsers) / sizeof(parsers[0]);
+
+  mpc_cleanup(parsers_len, parsers);
 
   mpc_optimise(r.output);
 
@@ -3814,7 +3826,18 @@ static mpc_err_t *mpca_lang_st(mpc_input_t *i, mpca_grammar_st_t *st) {
     e = NULL;
   }
 
-  mpc_cleanup(6, Lang, Stmt, Grammar, Term, Factor, Base);
+  mpc_parser_t *parsers[] = {
+    Lang,
+    Stmt,
+    Grammar,
+    Term,
+    Factor,
+    Base
+  };
+
+  int parsers_len = sizeof(parsers) / sizeof(parsers[0]);
+
+  mpc_cleanup(parsers_len, parsers);
 
   return e;
 }

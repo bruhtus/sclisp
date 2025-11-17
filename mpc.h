@@ -95,7 +95,7 @@ mpc_parser_t *mpc_define(mpc_parser_t *p, mpc_parser_t *a);
 mpc_parser_t *mpc_undefine(mpc_parser_t *p);
 
 void mpc_delete(mpc_parser_t *p);
-void mpc_cleanup(int n, ...);
+void mpc_cleanup(int n, mpc_parser_t *parsers[]);
 
 /*
 ** Basic Parsers

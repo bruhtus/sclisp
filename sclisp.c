@@ -79,6 +79,6 @@ int main(void)
 		free(input);
 	}
 
-	mpc_cleanup(5, Number, Symbol, Sexpr, Expr, Sclisp);
+	mpc_cleanup(parsers_len, init_parsers);
 	return 0;
 }
