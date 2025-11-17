@@ -1,5 +1,8 @@
 #include <stdio.h>
 
+void change_string1(const char **str);
+void change_string2(char **str);
+
 /*
  * Seems like initializing using char *str = "..." means that
  * we are putting the pointer of a string literal into `str`
@@ -18,7 +21,7 @@ int main(void)
 	const char *str = "anu";
 	printf("str 1: %p\n", str);
 
-	str = "itu";
+	change_string1(&str);
 	printf("str 2: %p\n", str);
 
 	str = "anu";
@@ -109,6 +112,28 @@ int main(void)
 	itu = "itu";
 
 	printf("itu: %s\n", itu);
+	printf("itu (similar to str 2): %p\n", itu);
+
+	/*
+	 * It seems like using the same string literal
+	 * in another function will result in using the same
+	 * memory address.
+	 *
+	 * Reference:
+	 * https://stackoverflow.com/a/349030
+	 */
+	change_string2(&itu);
+	printf("itu (similar to str 4): %p\n", itu);
 
 	return 0;
+}
+
+void change_string1(const char **str)
+{
+	*str = "itu";
+}
+
+void change_string2(char **str)
+{
+	*str = "nganu";
 }
