@@ -5,7 +5,8 @@ enum lval_type {
 	LVAL_ERR = -1,
 	LVAL_NUM = 1,
 	LVAL_SYM = 2,
-	LVAL_SEXPR = 3
+	LVAL_SEXPR = 3,
+	LVAL_QEXPR = 4
 };
 
 enum lval_err {
@@ -56,6 +57,7 @@ struct lval *lval_read_num(mpc_ast_t *ast);
 struct lval *lval_num(double num);
 struct lval *lval_sym(char *sym);
 struct lval *lval_sexpr(void);
+struct lval *lval_qexpr(void);
 
 struct lval *malloc_err(void);
 

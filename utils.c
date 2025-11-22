@@ -175,9 +175,14 @@ struct lval *lval_read(mpc_ast_t *ast)
 		|| strstr(ast->tag, "sexpr"))
 		value = lval_sexpr();
 
+	if (strstr(ast->tag, "qexpr"))
+		value = lval_qexpr();
+
 	for (i = 0; i < ast->children_num; i++) {
 		if (stringcmp(ast->children[i]->contents, "(") == 0
 			|| stringcmp(ast->children[i]->contents, ")") == 0
+			|| stringcmp(ast->children[i]->contents, "{") == 0
+			|| stringcmp(ast->children[i]->contents, "}") == 0
 			|| stringcmp(ast->children[i]->tag, "regex") == 0)
 			continue;
 
@@ -233,6 +238,10 @@ void lval_print(struct lval *value)
 			lval_expr_print(value, '(', ')');
 			break;
 
+		case LVAL_QEXPR:
+			lval_expr_print(value, '{', '}');
+			break;
+
 		default:
 			printf("Unknown value type.\n");
 	}
@@ -269,6 +278,7 @@ void lval_del(struct lval *value)
 			break;
 
 		case LVAL_SEXPR:
+		case LVAL_QEXPR:
 			for (i = 0; i < value->count; i++) {
 				lval_del(value->cell[i]);
 			}
@@ -352,6 +362,21 @@ struct lval *lval_sexpr(void)
 	}
 
 	value->type = LVAL_SEXPR;
+	value->count = 0;
+	value->cell = NULL;
+
+	return value;
+}
+
+struct lval *lval_qexpr(void)
+{
+	struct lval *value = malloc(sizeof(*value));
+
+	if (value == NULL) {
+		return malloc_err();
+	}
+
+	value->type = LVAL_QEXPR;
 	value->count = 0;
 	value->cell = NULL;
 

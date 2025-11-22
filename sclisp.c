@@ -11,6 +11,7 @@ int main(void)
 	mpc_parser_t *Number = mpc_new("number");
 	mpc_parser_t *Symbol = mpc_new("symbol");
 	mpc_parser_t *Sexpr = mpc_new("sexpr");
+	mpc_parser_t *Qexpr = mpc_new("qexpr");
 	mpc_parser_t *Expr = mpc_new("expr");
 	mpc_parser_t *Sclisp = mpc_new("sclisp");
 
@@ -18,6 +19,7 @@ int main(void)
 		Number,
 		Symbol,
 		Sexpr,
+		Qexpr,
 		Expr,
 		Sclisp
 	};
@@ -29,12 +31,13 @@ int main(void)
 		"number: /-?\\d+(\\.\\d+)?/;"
 		"symbol: '+' | '-' | '*' | '/' | '%' | '^';"
 		"sexpr: '(' <expr>* ')';"
-		"expr: <number> | <symbol> | <sexpr>;"
+		"qexpr: '{' <expr>* '}';"
+		"expr: <number> | <symbol> | <sexpr> | <qexpr>;"
 		"sclisp: /^/ <expr>* /$/;",
 		parsers_len, init_parsers
 	);
 
-	puts("Sclisp v0.0.1-rc1");
+	puts("Sclisp v0.0.1-rc2");
 	puts("Press ctrl-c, ctrl-d, exit command to exit\n");
 
 	char prompt[128] = "";
