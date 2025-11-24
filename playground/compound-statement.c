@@ -12,17 +12,17 @@
 void swap(int a, int b);
 
 /*
- * Trying out "compound literal" to swap integer value.
- * It seems like we use expression {} or a pair
- * of curly bracket as standalone and still using the
- * same object in the function (?).
+ * Trying out "compound statement" to swap integer value.
  *
- * When we are using compound literal, we are creating
- * unnamed object.
+ * The compound statement allows a set of declarations and
+ * statements to be grouped into one unit that can be used
+ * anywhere a __single statement__ is expected.
  *
- * References:
- * - https://cs.gmu.edu/~kauffman/cs222/stack-demo.html
- * - https://en.cppreference.com/w/c/language/compound_literal.html
+ * This is similar to using curly bracket with if statement
+ * or for-loop statement.
+ *
+ * Reference:
+ * - https://en.cppreference.com/w/c/language/statements.html#Compound_statements
  */
 int main(void)
 {
