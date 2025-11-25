@@ -22,7 +22,7 @@ void swap(int a, int b);
  * or for-loop statement.
  *
  * Reference:
- * - https://en.cppreference.com/w/c/language/statements.html#Compound_statements
+ * https://en.cppreference.com/w/c/language/statements.html#Compound_statements
  */
 int main(void)
 {
@@ -38,6 +38,28 @@ int main(void)
 	SWAP(a, b);
 	printf("a: %d, b: %d\n", a, b);
 
+	/*
+	 * All the code below is example of dangling pointer,
+	 * which means that the memory address might or might
+	 * not exist after exiting the compound statement
+	 * block scope. This is because compound statement has
+	 * automatic storage duration.
+	 *
+	 * When using gcc compiler on my machine,
+	 * all these pointer still exist after exiting
+	 * the compound statement either because
+	 * of gcc implementation or because it is a simple
+	 * program that the value in those memory address
+	 * still have not replaced yet.
+	 *
+	 * This usage is unpredictable so we should avoid it.
+	 *
+	 * In gcc, we can add flag -Wdangling-pointer to give
+	 * use warning about dangling pointer usage.
+	 *
+	 * Reference:
+	 * https://stackoverflow.com/q/57775336
+	 */
 	int *p;
 
 	{
