@@ -50,6 +50,14 @@ int main(void)
 	printf("p pointer: %p\n", p);
 	printf("p dereference: %d\n", *p);
 
+	for (int i = 0; i < 2; i++) {
+		printf("i address: %p\n", &i);
+		p = &i;
+	}
+
+	printf("p pointer for-loop: %p\n", p);
+	printf("p dereference for-loop: %d\n", *p);
+
 	return 0;
 }
 
