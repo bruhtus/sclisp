@@ -129,6 +129,10 @@ struct lval *builtin_op(struct lval *value, char *op)
 	return first;
 }
 
+/*
+ * lval_take() to get the element from list
+ * and then free the memory of original list.
+ */
 struct lval *lval_take(struct lval *value, int i)
 {
 	struct lval *item = lval_pop(value, i);
@@ -137,6 +141,11 @@ struct lval *lval_take(struct lval *value, int i)
 	return item;
 }
 
+/*
+ * lval_pop() to extract a single element from list, which
+ * means that we are reducing the list's elements,
+ * and then return the extracted value.
+ */
 struct lval *lval_pop(struct lval *value, int i)
 {
 	struct lval *item = value->cell[i];
