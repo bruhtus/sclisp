@@ -39,7 +39,12 @@ struct lval {
 
 struct lval *lval_eval(struct lval *value);
 struct lval *lval_eval_sexpr(struct lval *value);
+
+struct lval *builtin(struct lval *value, char *sym);
 struct lval *builtin_op(struct lval *value, char *op);
+
+struct lval *builtin_head(struct lval *value);
+struct lval *builtin_tail(struct lval *value);
 
 struct lval *lval_take(struct lval *value, int i);
 struct lval *lval_pop(struct lval *value, int i);

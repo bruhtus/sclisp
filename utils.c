@@ -40,10 +40,22 @@ struct lval *lval_eval_sexpr(struct lval *value)
 		);
 	}
 
-	struct lval *result = builtin_op(value, first->sym);
+	struct lval *result = builtin(value, first->sym);
 
 	lval_del(first);
 	return result;
+}
+
+struct lval *builtin(struct lval *value, char *sym)
+{
+	if (stringcmp("head", sym) == 0)
+		return builtin_head(value);
+
+	if (stringcmp("tail", sym) == 0)
+		return builtin_tail(value);
+
+	lval_del(value);
+	return lval_err("unknown symbol");
 }
 
 struct lval *builtin_op(struct lval *value, char *op)
@@ -127,6 +139,71 @@ struct lval *builtin_op(struct lval *value, char *op)
 
 	lval_del(value);
 	return first;
+}
+
+struct lval *builtin_head(struct lval *value)
+{
+	if (value->count != 1) {
+		lval_del(value);
+		return lval_err(
+			"builtin_head() passed too many arguments"
+		);
+	}
+
+	if (value->cell[0]->type != LVAL_QEXPR) {
+		lval_del(value);
+		return lval_err(
+			"builtin_head() passed incorrect type"
+		);
+	}
+
+	if (value->cell[0]->count == 0) {
+		lval_del(value);
+		return lval_err(
+			"builtin_head() passed empty list"
+		);
+	}
+
+	struct lval *head = lval_take(value, 0);
+
+	while (head->count > 1)
+		lval_del(
+			lval_pop(head, 1)
+		);
+
+	return head;
+}
+
+struct lval *builtin_tail(struct lval *value)
+{
+	if (value->count != 1) {
+		lval_del(value);
+		return lval_err(
+			"builtin_tail() passed too many arguments"
+		);
+	}
+
+	if (value->cell[0]->type != LVAL_QEXPR) {
+		lval_del(value);
+		return lval_err(
+			"builtin_tail() passed incorrect type"
+		);
+	}
+
+	if (value->cell[0]->count == 0) {
+		lval_del(value);
+		return lval_err(
+			"builtin_tail() passed empty list"
+		);
+	}
+
+	struct lval *tail = lval_take(value, 0);
+
+	lval_del(
+		lval_pop(tail, 0)
+	);
+
+	return tail;
 }
 
 /*
