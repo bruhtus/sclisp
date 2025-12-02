@@ -45,6 +45,8 @@ struct lval *builtin_op(struct lval *value, char *op);
 
 struct lval *builtin_head(struct lval *value);
 struct lval *builtin_tail(struct lval *value);
+struct lval *builtin_list(struct lval *value);
+struct lval *builtin_eval(struct lval *value);
 
 struct lval *lval_take(struct lval *value, int i);
 struct lval *lval_pop(struct lval *value, int i);

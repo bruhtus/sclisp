@@ -54,6 +54,24 @@ struct lval *builtin(struct lval *value, char *sym)
 	if (stringcmp("tail", sym) == 0)
 		return builtin_tail(value);
 
+	if (stringcmp("list", sym) == 0)
+		return builtin_list(value);
+
+	/*
+	 * Example:
+	 * eval (tail {tail head (list 69 42 69420)})
+	 *
+	 * The example above process is like this:
+	 * - Evaluate the first `tail` keyword, which result in
+	 *   `head (list 69 42 69420)`.
+	 * - And then evaluate `head` keyword with argument
+	 *   `(list 69 42 69420)`.
+	 * - Finally, we evaluate the `list` keyword with
+	 *   argument `69 42 69420`.
+	 */
+	if (stringcmp("eval", sym) == 0)
+		return builtin_eval(value);
+
 	lval_del(value);
 	return lval_err("unknown symbol");
 }
@@ -204,6 +222,34 @@ struct lval *builtin_tail(struct lval *value)
 	);
 
 	return tail;
+}
+
+struct lval *builtin_list(struct lval *value)
+{
+	value->type = LVAL_QEXPR;
+	return value;
+}
+
+struct lval *builtin_eval(struct lval *value)
+{
+	if (value->count != 1) {
+		lval_del(value);
+		return lval_err(
+			"builtin_eval() passed too many arguments"
+		);
+	}
+
+	if (value->cell[0]->type != LVAL_QEXPR) {
+		lval_del(value);
+		return lval_err(
+			"builtin_eval() passed incorrect type"
+		);
+	}
+
+	struct lval *first = lval_take(value, 0);
+	first->type = LVAL_SEXPR;
+
+	return lval_eval(first);
 }
 
 /*
