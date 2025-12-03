@@ -341,14 +341,14 @@ struct lval *lval_pop(struct lval *value, int i)
 	memmove(
 		&value->cell[i],
 		&value->cell[i+1],
-		sizeof(struct lval *) * (value->count - i - 1)
+		sizeof(*value->cell) * (value->count - i - 1)
 	);
 
 	value->count--;
 
 	value->cell = realloc(
 		value->cell,
-		sizeof(struct lval *) * value->count
+		sizeof(*value->cell) * value->count
 	);
 
 	return item;
@@ -450,7 +450,7 @@ struct lval *lval_add(struct lval *v1, struct lval *v2)
 
 	v1->cell = realloc(
 		v1->cell,
-		sizeof(struct lval *) * v1->count
+		sizeof(*v1->cell) * v1->count
 	);
 
 	v1->cell[v1->count - 1] = v2;
