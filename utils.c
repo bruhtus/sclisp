@@ -46,6 +46,22 @@ struct lval *lval_eval_sexpr(struct lval *value)
 	return result;
 }
 
+struct lval *lval_join(struct lval *v1, struct lval *v2)
+{
+	/*
+	 * Move the value of v2 into v1 and reduce the
+	 * v2 items until v2 is empty.
+	 */
+	while (v2->count)
+		v1 = lval_add(
+			v1,
+			lval_pop(v2, 0)
+		);
+
+	lval_del(v2);
+	return v1;
+}
+
 struct lval *builtin(struct lval *value, char *sym)
 {
 	if (stringcmp("head", sym) == 0)
@@ -71,6 +87,27 @@ struct lval *builtin(struct lval *value, char *sym)
 	 */
 	if (stringcmp("eval", sym) == 0)
 		return builtin_eval(value);
+
+	/*
+	 * Example:
+	 * join {69} {69420 69} (eval {head (list 42 69420)})
+	 *
+	 * The example above process is like this:
+	 * - We create new quoted expression, and put that
+	 *   in some variable, let's say `joined` variable.
+	 * - Add the element in {69} into `joined` quoted
+	 *   expression.
+	 * - And then, add all elements from {69420 69} into
+	 *   `joined` quoted expression.
+	 * - After that, we evaluate symbolic expression
+	 *   (eval {head (list 42 69420)}), which result
+	 *   in number 42 and put that in `joined` quoted
+	 *   expression.
+	 * - Finally, we got new `joined` quoted expression
+	 *   with elements {69 69420 69 42}.
+	 */
+	if (stringcmp("join", sym) == 0)
+		return builtin_join(value);
 
 	lval_del(value);
 	return lval_err("unknown symbol");
@@ -250,6 +287,31 @@ struct lval *builtin_eval(struct lval *value)
 	first->type = LVAL_SEXPR;
 
 	return lval_eval(first);
+}
+
+struct lval *builtin_join(struct lval *value)
+{
+	int i;
+
+	for (i = 0; i < value->count; i++) {
+		if (value->cell[i]->type != LVAL_QEXPR) {
+			lval_del(value);
+			return lval_err(
+				"builtin_join() passed incorrect type"
+			);
+		}
+	}
+
+	struct lval *joined = lval_pop(value, 0);
+
+	while (value->count)
+		joined = lval_join(
+			joined,
+			lval_pop(value, 0)
+		);
+
+	lval_del(value);
+	return joined;
 }
 
 /*
