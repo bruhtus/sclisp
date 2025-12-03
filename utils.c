@@ -109,6 +109,9 @@ struct lval *builtin(struct lval *value, char *sym)
 	if (stringcmp("join", sym) == 0)
 		return builtin_join(value);
 
+	if (strstr("+*-/%^", sym))
+		return builtin_op(value, sym);
+
 	lval_del(value);
 	return lval_err("unknown symbol");
 }
