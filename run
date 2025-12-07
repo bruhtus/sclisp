@@ -15,7 +15,7 @@ case "$1" in
     $main_compiler
     ;;
   main-debug)
-    $main_compiler -ggdb
+    $main_compiler -ggdb3
     ;;
   mpc)
     # To list the names of object files,
