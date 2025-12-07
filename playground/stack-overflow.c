@@ -6,6 +6,9 @@
  * - break 13 (add break points in line 13)
  * - `run`
  * - `continue 10`
+ *
+ * Reference:
+ * https://medium.com/@lekushlev/understanding-and-demonstrating-stack-overflow-in-c-997975df7b59
  */
 void function(void)
 {
