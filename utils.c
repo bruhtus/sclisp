@@ -12,6 +12,24 @@ struct lval *lval_eval_sexpr(struct lval *value)
 {
 	int i;
 
+	/*
+	 * Prevent integer overflow when we got too many
+	 * expression. Still not sure if we should larger
+	 * integer type for value->count.
+	 *
+	 * Keep in mind that this method is tested on 64-bit
+	 * system, so this might not work on other system.
+	 *
+	 * References:
+	 * - http://www.fefe.de/intof.html
+	 * - https://stackoverflow.com/a/21650326
+	 * - https://www.programiz.com/c-programming/bitwise-operators
+	 */
+	if ((value->count >> 31) != 0)
+		return lval_err(
+			"value->count got integer overflow"
+		);
+
 	if (value->count == 0)
 		return value;
 
