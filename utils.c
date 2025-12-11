@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "limits.h"
 
 struct lval *lval_eval(struct lval *value)
 {
@@ -19,13 +20,19 @@ struct lval *lval_eval_sexpr(struct lval *value)
 	 *
 	 * Keep in mind that this method is tested on 64-bit
 	 * system, so this might not work on other system.
+	 * And also, this method only tested on the
+	 * signed integer, so this method might not work
+	 * for unsigned integer where the overflow value is
+	 * defined.
 	 *
 	 * References:
 	 * - http://www.fefe.de/intof.html
 	 * - https://stackoverflow.com/a/21650326
 	 * - https://www.programiz.com/c-programming/bitwise-operators
 	 */
-	if ((value->count >> 31) != 0) {
+	if ((value->count >> (
+		(sizeof(value->count) * CHAR_BIT) - 1)
+	) != 0) {
 		lval_del(value);
 		return lval_err(
 			"value->count got integer overflow"
