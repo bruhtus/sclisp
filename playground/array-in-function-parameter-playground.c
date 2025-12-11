@@ -16,6 +16,10 @@ int main()
 		"length array: %d\n",
 		(sizeof(array) / sizeof(array[0]))
 	);
+
+	printf("sizeof array[0]: %d\n", sizeof(array[0]));
+	printf("sizeof int: %d\n", sizeof(int));
+
 	printLength(array);
 }
 
