@@ -167,23 +167,22 @@ struct lval *builtin_op(struct lval *value, char *op)
 
 	struct lval *first = lval_pop(value, 0);
 
-	if ((stringcmp(op, "-") == 0) && value->count == 0) {
+	if ((*op == '-') && value->count == 0)
 		first->num = -first->num;
-	}
 
 	while (value->count > 0) {
 		struct lval *next = lval_pop(value, 0);
 
-		if (stringcmp(op, "+") == 0)
+		if (*op == '+')
 			first->num += next->num;
 
-		if (stringcmp(op, "-") == 0)
+		if (*op == '-')
 			first->num -= next->num;
 
-		if (stringcmp(op, "*") == 0)
+		if (*op == '*')
 			first->num *= next->num;
 
-		if (stringcmp(op, "/") == 0) {
+		if (*op == '/') {
 			if (next->num == 0) {
 				lval_del(first);
 				lval_del(next);
@@ -197,7 +196,7 @@ struct lval *builtin_op(struct lval *value, char *op)
 			first->num /= next->num;
 		}
 
-		if (stringcmp(op, "%") == 0) {
+		if (*op == '%') {
 			double modulo = fmod(first->num, next->num);
 
 			if (isnan(modulo)) {
@@ -208,7 +207,7 @@ struct lval *builtin_op(struct lval *value, char *op)
 			first->num = modulo;
 		}
 
-		if (stringcmp(op, "^") == 0) {
+		if (*op == '^') {
 			double power = pow(first->num, next->num);
 
 			if (isnan(power)) {
