@@ -437,9 +437,8 @@ void lval_expr_print(struct lval *v, char open, char close)
 	for (i = 0; i < v->count; i++) {
 		lval_print(v->cell[i]);
 
-		if (i != (v->count - 1)) {
+		if (i != (v->count - 1))
 			putchar(' ');
-		}
 	}
 
 	putchar(close);
@@ -522,9 +521,8 @@ struct lval *lval_err(const char *mes)
 {
 	struct lval *value = malloc(sizeof(*value));
 
-	if (value == NULL) {
+	if (value == NULL)
 		return malloc_err();
-	}
 
 	value->type = LVAL_ERR;
 
@@ -556,9 +554,8 @@ struct lval *lval_num(double num)
 {
 	struct lval *value = malloc(sizeof(*value));
 
-	if (value == NULL) {
+	if (value == NULL)
 		return malloc_err();
-	}
 
 	value->type = LVAL_NUM;
 	value->num = num;
@@ -570,9 +567,8 @@ struct lval *lval_sym(char *sym)
 {
 	struct lval *value = malloc(sizeof(*value));
 
-	if (value == NULL) {
+	if (value == NULL)
 		return malloc_err();
-	}
 
 	value->type = LVAL_SYM;
 	value->sym = sym;
@@ -584,9 +580,8 @@ struct lval *lval_sexpr(void)
 {
 	struct lval *value = malloc(sizeof(*value));
 
-	if (value == NULL) {
+	if (value == NULL)
 		return malloc_err();
-	}
 
 	value->type = LVAL_SEXPR;
 	value->count = 0;
@@ -599,9 +594,8 @@ struct lval *lval_qexpr(void)
 {
 	struct lval *value = malloc(sizeof(*value));
 
-	if (value == NULL) {
+	if (value == NULL)
 		return malloc_err();
-	}
 
 	value->type = LVAL_QEXPR;
 	value->count = 0;
