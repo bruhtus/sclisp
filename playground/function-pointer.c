@@ -17,5 +17,6 @@ int main(void)
 	/* fptr = &add; */
 
 	printf("%d\n", fptr(1, 2));
+	printf("%d\n", (*fptr)(1, 2));
 	return 0;
 }
