@@ -160,6 +160,16 @@ int main(void)
 	(*p_func)(p, sizeof(*p));
 	printf("p_func increase: %d\n", *p);
 
+	/*
+	 * We can also provide function pointer as an array,
+	 * and then call the function pointer with
+	 * the index or offset number, like (*array[0])(...).
+	 */
+	void (*p_func_array[])(void *, int) = { increase };
+	(*p_func_array[0])(p, sizeof(*p));
+	(**p_func_array)(p, sizeof(*p));
+	printf("p_func_array increase: %d\n", *p);
+
 	return 0;
 }
 
