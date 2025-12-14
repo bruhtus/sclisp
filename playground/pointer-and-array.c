@@ -173,6 +173,10 @@ int main(void)
 	/*
 	 * We can also assign function pointer with casting
 	 * like below.
+	 *
+	 * Seems like declaring function pointer is the same
+	 * as declaring variable, which means we can't have
+	 * multiple function pointer with __the same name__.
 	 */
 	void (*p_func_cast)(void *, int);
 	p_func_cast = (void (*)(void *, int))increase;
