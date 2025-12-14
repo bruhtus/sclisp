@@ -170,6 +170,15 @@ int main(void)
 	(**p_func_array)(p, sizeof(*p));
 	printf("p_func_array increase: %d\n", *p);
 
+	/*
+	 * We can also assign function pointer with casting
+	 * like below.
+	 */
+	void (*p_func_cast)(void *, int);
+	p_func_cast = (void (*)(void *, int))increase;
+	(*p_func_cast)(p, sizeof(*p));
+	printf("p_func_cast increase: %d\n", *p);
+
 	return 0;
 }
 
