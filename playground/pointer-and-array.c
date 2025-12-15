@@ -14,6 +14,7 @@ int main(void)
 	int *p = num;
 
 	printf("&num[0]: %p\n", &num[0]);
+	printf("&(*num): %p\n", &(*num));
 	printf("p: %p\n", p);
 	putchar('\n');
 
