@@ -9,6 +9,20 @@ int (*select_op(int op))(int a, int b);
 int add(int a, int b);
 int minus(int a, int b);
 
+/*
+ * typedef introduces an __alias__ for the type, and in this
+ * case the alias is `ptr_td` with the type
+ * `int (*)(int, int)`.
+ *
+ * So basically `ptr_td` is an alias for type
+ * `int (*)(int, int)`.
+ *
+ * Reference:
+ * https://stackoverflow.com/a/1591492
+ */
+typedef int (*ptr_td)(int, int);
+ptr_td select_op_td(int op);
+
 int main(void)
 {
 	int (*fptr)(int, int);
@@ -35,6 +49,14 @@ int main(void)
 		printf("fptr_op is NULL\n");
 	}
 
+	/*
+	 * fptr_op_td is kind of the same as fptr_op, which
+	 * means that the fptr_op_td is also a function
+	 * pointer.
+	 */
+	ptr_td fptr_op_td = select_op_td(2);
+	printf("fptr_op_td: %d\n", fptr_op_td(2, 1));
+
 	return 0;
 }
 
@@ -52,6 +74,23 @@ int main(void)
  * `playground/pointer-and-array.c`.
  */
 int (*select_op(int op))(int a, int b)
+{
+	switch (op) {
+		case 1:
+			return add;
+
+		case 2:
+			return minus;
+
+		default:
+			printf("Unrecognized option %d\n", op);
+			break;
+	}
+
+	return NULL;
+}
+
+ptr_td select_op_td(int op)
 {
 	switch (op) {
 		case 1:
