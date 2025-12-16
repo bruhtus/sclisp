@@ -127,17 +127,17 @@ int main(void)
 
 	/*
 	 * It seems like we can use the string literals memory
-	 * address explicitly like `&"abc"`, but i am still
+	 * address explicitly like `&"abd"`, but i am still
 	 * not sure what that means. What is the difference
-	 * between using `&"abc"` and `"abc"` string literal
+	 * between using `&"abd"` and `"abd"` string literal
 	 * directly?
 	 *
 	 * I mean, we have a different type when declaring
 	 * the string literal as is, like this:
-	 * char *confusion = "abc";
+	 * char *confusion = "abd";
 	 *
 	 * And this:
-	 * char (*confusion)[4] = &"abc";
+	 * char (*confusion)[4] = &"abd";
 	 *
 	 * The second one have type `char (*)[4]` but the
 	 * first one have type `char *`.
@@ -145,16 +145,27 @@ int main(void)
 	 * What does the difference between `char (*)[4]` and
 	 * `char *`?
 	 *
+	 * My hypothesis is that `char (*)[4]` is similar to
+	 * 2-dimensional array with the column of 4 (?). Still
+	 * not sure, need more info.
+	 *
 	 * Reference:
 	 * https://stackoverflow.com/questions/9970295/life-time-of-a-string-literal-in-c#comment12737771_9970305
 	 */
-	char (*confusion)[4] = &"abc";
+	char (*confusion)[4] = &"abd";
+	printf("confusion: %s\n", confusion);
 	printf("confusion: %p\n", confusion);
-	printf("confusion: %c\n", confusion[0][0]);
-	printf("confusion: %c\n", confusion[0][1]);
-	printf("confusion: %c\n", confusion[1][0]);
-	printf("confusion: %p\n", &"abc");
-	printf("confusion: %p\n", "abc");
+	printf("confusion: %p\n", &"abd");
+	printf("confusion: %p\n", "abd");
+	printf("confusion[0][0]: %p\n", confusion[0][0]);
+	printf("confusion[0][0]: %c\n", confusion[0][0]);
+	printf("confusion[0][1]: %c\n", confusion[0][1]);
+	printf("confusion[0][2]: %c\n", confusion[0][2]);
+	printf("(*confusion)[2]: %c\n", (*confusion)[2]);
+	printf(
+		"null terminator confusion: %d\n",
+		confusion[0][3] == '\0'
+	);
 
 	return 0;
 }
