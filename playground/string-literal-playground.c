@@ -167,6 +167,25 @@ int main(void)
 		confusion[0][3] == '\0'
 	);
 
+	/*
+	 * The expression below produce the same result,
+	 * which is a __buffer overflow__ on the line
+	 * printf("confusion: %s\n", confusion);
+	 *
+	 * That's why the result is `c` character, because of
+	 * "confusion: %s\n". When we get the value from
+	 * confusion[1][11], we got `%` character because `%`
+	 * is the 12th elements of `confusion: %s\n`.
+	 */
+	printf("*confusion[1]: %c\n", *confusion[1]);
+	printf("*(confusion[1]): %c\n", *(confusion[1]));
+	printf(
+		"*(*(confusion + 1)): %c\n",
+		*(*(confusion + 1))
+	);
+	printf("confusion[1][0]: %c\n", confusion[1][0]);
+	printf("confusion[1][11]: %c\n", confusion[1][11]);
+
 	return 0;
 }
 
