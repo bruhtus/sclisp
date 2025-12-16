@@ -395,19 +395,19 @@ struct lval *lval_read(mpc_ast_t *ast)
 	/*
 	 * Symbol > is the root for the parser (?).
 	 */
-	if (stringcmp(ast->tag, ">") == 0
-		|| strstr(ast->tag, "sexpr"))
+	if (*ast->tag == '>' || strstr(ast->tag, "sexpr"))
 		value = lval_sexpr();
 
 	if (strstr(ast->tag, "qexpr"))
 		value = lval_qexpr();
 
 	for (i = 0; i < ast->children_num; i++) {
-		if (stringcmp(ast->children[i]->contents, "(") == 0
-			|| stringcmp(ast->children[i]->contents, ")") == 0
-			|| stringcmp(ast->children[i]->contents, "{") == 0
-			|| stringcmp(ast->children[i]->contents, "}") == 0
-			|| stringcmp(ast->children[i]->tag, "regex") == 0)
+		if (*ast->children[i]->contents == '('
+			|| *ast->children[i]->contents == ')'
+			|| *ast->children[i]->contents == '{'
+			|| *ast->children[i]->contents == '}'
+			|| stringcmp(ast->children[i]->tag, "regex") == 0
+		)
 			continue;
 
 		value = lval_add(
