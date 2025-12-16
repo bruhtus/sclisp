@@ -527,12 +527,24 @@ struct lval *lval_err(const char *mes)
 	value->type = LVAL_ERR;
 
 	/*
-	 * We can directly use the string literal because
-	 * we know the value before run-time (we give the
-	 * value in the source code), so we don't
-	 * need to use malloc() and strcpy().
+	 * We don't need to use malloc() and strcpy()
+	 * because we use string literal, which has
+	 * static storage duration and __persist__ the
+	 * entire execution of the program. So string
+	 * literal does not result in __dangling
+	 * pointer__.
+	 *
+	 * With that in mind, we can safely change the
+	 * memory address stored in value->err with
+	 * string literal memory address.
+	 *
+	 * malloc() and strcpy() needed if we get
+	 * the value during run-time and the memory
+	 * will be freed in the middle of processing.
 	 *
 	 * References:
+	 * - https://stackoverflow.com/a/9970305
+	 * - https://en.cppreference.com/w/c/language/string_literal.html
 	 * - https://stackoverflow.com/a/55931977
 	 * - https://stackoverflow.com/a/55723074
 	 */
