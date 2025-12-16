@@ -125,6 +125,37 @@ int main(void)
 	change_string2(&itu);
 	printf("itu (similar to str 4): %p\n", itu);
 
+	/*
+	 * It seems like we can use the string literals memory
+	 * address explicitly like `&"abc"`, but i am still
+	 * not sure what that means. What is the difference
+	 * between using `&"abc"` and `"abc"` string literal
+	 * directly?
+	 *
+	 * I mean, we have a different type when declaring
+	 * the string literal as is, like this:
+	 * char *confusion = "abc";
+	 *
+	 * And this:
+	 * char (*confusion)[4] = &"abc";
+	 *
+	 * The second one have type `char (*)[4]` but the
+	 * first one have type `char *`.
+	 *
+	 * What does the difference between `char (*)[4]` and
+	 * `char *`?
+	 *
+	 * Reference:
+	 * https://stackoverflow.com/questions/9970295/life-time-of-a-string-literal-in-c#comment12737771_9970305
+	 */
+	char (*confusion)[4] = &"abc";
+	printf("confusion: %p\n", confusion);
+	printf("confusion: %c\n", confusion[0][0]);
+	printf("confusion: %c\n", confusion[0][1]);
+	printf("confusion: %c\n", confusion[1][0]);
+	printf("confusion: %p\n", &"abc");
+	printf("confusion: %p\n", "abc");
+
 	return 0;
 }
 
