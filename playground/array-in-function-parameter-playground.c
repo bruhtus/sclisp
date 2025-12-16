@@ -2,6 +2,7 @@
 
 // Ref: https://stackoverflow.com/a/10349610
 void printSizeof(int array[]);
+void printPtrArray(int (*array)[3]);
 void printLength(int array[]);
 
 int main()
@@ -10,6 +11,7 @@ int main()
 
 	printf("sizeof array: %d\n", sizeof(array));
 	printSizeof(array);
+	printPtrArray(&array);
 
 	// Devide size of the array by the size of array element type.
 	printf(
@@ -27,6 +29,15 @@ int main()
 void printSizeof(int *array)
 {
 	printf("sizeof parameter: %d\n", sizeof(array));
+}
+
+// Using a pointer to array with size 3 as parameter.
+void printPtrArray(int (*array)[3])
+{
+	printf(
+		"sizeof pointer to array: %d\n",
+		sizeof(array)
+	);
 }
 
 void printLength(int *array)
