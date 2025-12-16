@@ -571,6 +571,17 @@ struct lval *lval_sym(char *sym)
 		return malloc_err();
 
 	value->type = LVAL_SYM;
+
+	/*
+	 * We didn't use malloc() and strcpy() here
+	 * because the memory address of `sym` (character
+	 * for the symbol, such as +, -, *, and so on)
+	 * will be available during the evaluation until
+	 * we call mpc_ast_delete() in the main().
+	 *
+	 * Reference:
+	 * https://stackoverflow.com/a/55723683
+	 */
 	value->sym = sym;
 
 	return value;
