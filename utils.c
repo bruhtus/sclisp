@@ -541,6 +541,10 @@ struct lval *lval_err(const char *mes)
 	 * malloc() and strcpy() needed if we get
 	 * the value during run-time and the memory
 	 * will be freed in the middle of processing.
+	 * For example having string from opening a
+	 * file, at some point we need to close the
+	 * file and the memory address will no longer
+	 * accessible.
 	 *
 	 * References:
 	 * - https://stackoverflow.com/a/9970305
