@@ -2,6 +2,7 @@
 
 void change_string1(const char **str);
 void change_string2(char **str);
+char (*pointer_array(void))[4];
 
 /*
  * Seems like initializing using char *str = "..." means that
@@ -125,6 +126,8 @@ int main(void)
 	change_string2(&itu);
 	printf("itu (similar to str 4): %p\n", itu);
 
+	putchar('\n');
+
 	/*
 	 * It seems like we can use the string literals memory
 	 * address explicitly like `&"abd"`, but i am still
@@ -186,6 +189,17 @@ int main(void)
 	printf("confusion[1][0]: %c\n", confusion[1][0]);
 	printf("confusion[1][11]: %c\n", confusion[1][11]);
 
+	/*
+	 * This is similar with the `confusion` variable
+	 * above, the difference is that we are returning
+	 * the value from another function.
+	 */
+	char (*another_confusion)[4] = pointer_array();
+	printf(
+		"another_confusion: %s\n",
+		another_confusion
+	);
+
 	return 0;
 }
 
@@ -197,4 +211,20 @@ void change_string1(const char **str)
 void change_string2(char **str)
 {
 	*str = "nganu";
+}
+
+/*
+ * This function return a memory address to
+ * array of char with size 4,
+ * `{'c', 'e', 'f', '\0'}`.
+ *
+ * So if we have more character than 4, this
+ * function will throw an error at compile-time.
+ *
+ * Reference:
+ * https://stackoverflow.com/a/11657653
+ */
+char (*pointer_array(void))[4]
+{
+	return &"cef";
 }
