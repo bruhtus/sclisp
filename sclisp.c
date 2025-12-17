@@ -73,7 +73,8 @@ int main(void)
 			lval_println(eval);
 			lval_del(eval);
 
-			mpc_ast_delete(result.output);
+			mpc_ast_delete(ast);
+			ast = NULL;
 		} else {
 			mpc_err_print(result.error);
 			mpc_err_delete(result.error);
