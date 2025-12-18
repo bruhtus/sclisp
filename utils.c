@@ -74,22 +74,6 @@ struct lval *lval_eval_sexpr(struct lval *value)
 	return result;
 }
 
-struct lval *lval_join(struct lval *v1, struct lval *v2)
-{
-	/*
-	 * Move the value of v2 into v1 and reduce the
-	 * v2 items until v2 is empty.
-	 */
-	while (v2->count)
-		v1 = lval_add(
-			v1,
-			lval_pop(v2, 0)
-		);
-
-	lval_del(v2);
-	return v1;
-}
-
 struct lval *builtin(struct lval *value, char *sym)
 {
 	if (stringcmp("head", sym) == 0)
@@ -342,6 +326,22 @@ struct lval *builtin_join(struct lval *value)
 
 	lval_del(value);
 	return joined;
+}
+
+struct lval *lval_join(struct lval *v1, struct lval *v2)
+{
+	/*
+	 * Move the value of v2 into v1 and reduce the
+	 * v2 items until v2 is empty.
+	 */
+	while (v2->count)
+		v1 = lval_add(
+			v1,
+			lval_pop(v2, 0)
+		);
+
+	lval_del(v2);
+	return v1;
 }
 
 /*
