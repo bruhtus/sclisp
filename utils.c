@@ -540,11 +540,7 @@ void lval_del(struct lval *value)
 			return;
 
 		case LVAL_NUM:
-			break;
-
 		case LVAL_ERR:
-			break;
-
 		case LVAL_SYM:
 			break;
 
