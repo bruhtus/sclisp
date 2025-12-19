@@ -31,9 +31,7 @@ struct lval *lval_eval_sexpr(struct lval *value)
 	 * - https://stackoverflow.com/a/21650326
 	 * - https://www.programiz.com/c-programming/bitwise-operators
 	 */
-	if ((value->count >> (
-		(sizeof(value->count) * CHAR_BIT) - 1)
-	) != 0) {
+	if ((value->count >> MAX_BIT_SIZE(value->count)) != 0) {
 		lval_del(value);
 		return lval_err(
 			"value->count got integer overflow"

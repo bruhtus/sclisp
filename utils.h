@@ -1,5 +1,9 @@
 #include "mpc.h"
 
+#define MAX_BIT_SIZE(type) ( \
+	(sizeof(type) * CHAR_BIT) - 1 \
+)
+
 enum lval_type {
 	LVAL_MALLOC_FAILED = -2,
 	LVAL_ERR = -1,
