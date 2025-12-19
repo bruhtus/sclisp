@@ -427,8 +427,10 @@ void lval_expr_print(struct lval *v, char open, char close)
 {
 	int i;
 
-	if (v->count == 0)
+	if (v->count == 0) {
+		printf("()");
 		return;
+	}
 
 	putchar(open);
 
