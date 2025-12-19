@@ -10,7 +10,8 @@ enum lval_type {
 	LVAL_NUM = 1,
 	LVAL_SYM = 2,
 	LVAL_SEXPR = 3,
-	LVAL_QEXPR = 4
+	LVAL_QEXPR = 4,
+	LVAL_QEXPR_LEN = 5
 };
 
 enum lval_err {
@@ -52,6 +53,7 @@ struct lval *builtin_tail(struct lval *value);
 struct lval *builtin_list(struct lval *value);
 struct lval *builtin_eval(struct lval *value);
 struct lval *builtin_join(struct lval *value);
+struct lval *builtin_len(struct lval *value);
 
 struct lval *lval_join(struct lval *v1, struct lval *v2);
 struct lval *lval_take(struct lval *value, int i);

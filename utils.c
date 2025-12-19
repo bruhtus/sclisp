@@ -83,6 +83,9 @@ struct lval *builtin(struct lval *value, char *sym)
 	if (stringcmp("list", sym) == 0)
 		return builtin_list(value);
 
+	if (stringcmp("len", sym) == 0)
+		return builtin_len(value);
+
 	/*
 	 * Example:
 	 * eval (tail {tail head (list 69 42 69420)})
@@ -326,6 +329,44 @@ struct lval *builtin_join(struct lval *value)
 	return joined;
 }
 
+/*
+ * Usage:
+ * len {69 69 69420} -> 3
+ * len {69 42 (head {42 69}) (list 69 42 69420)} -> 4
+ *
+ * Keep in mind that we don't evaluate anything inside
+ * quoted expression. So if we provide the
+ * (head {42 69}), it will be treated as 1 item.
+ *
+ * Reference:
+ * https://jtra.cz/stuff/lisp/sclr/length.html
+ */
+struct lval *builtin_len(struct lval *value)
+{
+	if (value->count != 1) {
+		lval_del(value);
+		return lval_err(
+			"builtin_len() passed too many arguments"
+		);
+	}
+
+	if (value->cell[0]->type != LVAL_QEXPR) {
+		lval_del(value);
+		return lval_err(
+			"builtin_len() passed incorrect type"
+		);
+	}
+
+	value->type = LVAL_QEXPR_LEN;
+
+	if (value->cell[0]->count == 0)
+		value->count = 0;
+	else
+		value->count = value->cell[0]->count;
+
+	return value;
+}
+
 struct lval *lval_join(struct lval *v1, struct lval *v2)
 {
 	/*
@@ -465,6 +506,13 @@ void lval_print(struct lval *value)
 			lval_expr_print(value, '(', ')');
 			break;
 
+		case LVAL_QEXPR_LEN:
+			printf(
+				"Total q-expr: %d",
+				value->count
+			);
+			break;
+
 		default:
 			printf("Unknown value type.\n");
 	}
@@ -500,11 +548,16 @@ void lval_del(struct lval *value)
 		case LVAL_SYM:
 			break;
 
+		case LVAL_QEXPR_LEN:
+			for (i = 0; i < value->cell[0]->count; i++)
+				free(value->cell[0]->cell[i]);
+
+			break;
+
 		case LVAL_SEXPR:
 		case LVAL_QEXPR:
-			for (i = 0; i < value->count; i++) {
+			for (i = 0; i < value->count; i++)
 				lval_del(value->cell[i]);
-			}
 
 			free(value->cell);
 			value->cell = NULL;

@@ -29,7 +29,7 @@ int main(void)
 	mpca_lang(
 		MPCA_LANG_DEFAULT,
 		"number: /-?\\d+(\\.\\d+)?/;"
-		"symbol: \"head\" | \"tail\" | \"list\" | \"eval\" | \"join\" | '+' | '-' | '*' | '/' | '%' | '^';"
+		"symbol: \"head\" | \"tail\" | \"list\" | \"eval\" | \"join\" | \"len\" | '+' | '-' | '*' | '/' | '%' | '^';"
 		"sexpr: '(' <expr>* ')';"
 		"qexpr: '{' <expr>* '}';"
 		"expr: <number> | <symbol> | <sexpr> | <qexpr>;"
