@@ -40,11 +40,11 @@ int main(void)
 	puts("Sclisp v0.0.1-rc2");
 	puts("Press ctrl-c, ctrl-d, exit command to exit\n");
 
-	char prompt[128] = "";
+	const char *prompt;
 	char *input;
 
 	while (1) {
-		sprintf(prompt, "sclisp> ");
+		prompt = "sclisp> ";
 		input = readline(prompt);
 
 		if (input == NULL || stringcmp(input, "exit") == 0) {
