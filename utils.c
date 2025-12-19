@@ -461,11 +461,8 @@ void lval_print(struct lval *value)
 			break;
 
 		case LVAL_SEXPR:
-			lval_expr_print(value, '(', ')');
-			break;
-
 		case LVAL_QEXPR:
-			lval_expr_print(value, '{', '}');
+			lval_expr_print(value, '(', ')');
 			break;
 
 		default:
