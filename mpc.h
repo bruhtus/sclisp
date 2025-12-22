@@ -95,7 +95,7 @@ mpc_parser_t *mpc_define(mpc_parser_t *p, mpc_parser_t *a);
 mpc_parser_t *mpc_undefine(mpc_parser_t *p);
 
 void mpc_delete(mpc_parser_t *p);
-void mpc_cleanup(int n, mpc_parser_t *parsers[]);
+void mpc_cleanup(size_t n, mpc_parser_t *parsers[]);
 
 /*
 ** Basic Parsers
@@ -363,7 +363,7 @@ mpc_parser_t *mpca_grammar(int flags, const char *grammar, ...);
 mpc_err_t *mpca_lang(
     int flags,
     const char *language,
-    int parsers_len,
+    size_t parsers_len,
     mpc_parser_t *parsers[]
 );
 

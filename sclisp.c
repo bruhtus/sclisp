@@ -24,7 +24,7 @@ int main(void)
 		Sclisp
 	};
 
-	int parsers_len = sizeof(init_parsers) / sizeof(init_parsers[0]);
+	size_t parsers_len = sizeof(init_parsers) / sizeof(init_parsers[0]);
 
 	mpca_lang(
 		MPCA_LANG_DEFAULT,
