@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include "utils.h"
 #include "limits.h"
 
@@ -52,11 +53,6 @@ struct lval *lval_eval_sexpr(struct lval *value)
 		return lval_take(value, 0);
 
 	struct lval *first = lval_pop(value, 0);
-
-	if (first->type == LVAL_MALLOC_FAILED) {
-		lval_del(value);
-		return first;
-	}
 
 	if (first->type != LVAL_SYM) {
 		lval_del(first);
@@ -135,13 +131,6 @@ struct lval *builtin_op(struct lval *value, char *op)
 
 	for (i = 0; i < value->count; i++) {
 		struct lval *cell = value->cell[i];
-
-		/*
-		 * We are passing the value of cell, which
-		 * is a memory address.
-		 */
-		if (cell->type == LVAL_MALLOC_FAILED)
-			return cell;
 
 		if (cell->type != LVAL_NUM) {
 			lval_del(value);
@@ -493,7 +482,6 @@ void lval_print(struct lval *value)
 			break;
 
 		case LVAL_ERR:
-		case LVAL_MALLOC_FAILED:
 			printf("Error: %s", value->err);
 			break;
 
@@ -536,9 +524,6 @@ void lval_del(struct lval *value)
 	int i;
 
 	switch (value->type) {
-		case LVAL_MALLOC_FAILED:
-			return;
-
 		case LVAL_NUM:
 		case LVAL_ERR:
 		case LVAL_SYM:
@@ -568,7 +553,10 @@ struct lval *lval_err(const char *mes)
 	struct lval *value = malloc(sizeof(*value));
 
 	if (value == NULL)
-		return malloc_err();
+		alloc_err(
+			MALLOC_ERR_MSG,
+			SIZE_MALLOC_ERR_MSG
+		);
 
 	value->type = LVAL_ERR;
 
@@ -617,7 +605,10 @@ struct lval *lval_num(double num)
 	struct lval *value = malloc(sizeof(*value));
 
 	if (value == NULL)
-		return malloc_err();
+		alloc_err(
+			MALLOC_ERR_MSG,
+			SIZE_MALLOC_ERR_MSG
+		);
 
 	value->type = LVAL_NUM;
 	value->num = num;
@@ -630,7 +621,10 @@ struct lval *lval_sym(char *sym)
 	struct lval *value = malloc(sizeof(*value));
 
 	if (value == NULL)
-		return malloc_err();
+		alloc_err(
+			MALLOC_ERR_MSG,
+			SIZE_MALLOC_ERR_MSG
+		);
 
 	value->type = LVAL_SYM;
 
@@ -654,7 +648,10 @@ struct lval *lval_sexpr(void)
 	struct lval *value = malloc(sizeof(*value));
 
 	if (value == NULL)
-		return malloc_err();
+		alloc_err(
+			MALLOC_ERR_MSG,
+			SIZE_MALLOC_ERR_MSG
+		);
 
 	value->type = LVAL_SEXPR;
 	value->count = 0;
@@ -668,7 +665,10 @@ struct lval *lval_qexpr(void)
 	struct lval *value = malloc(sizeof(*value));
 
 	if (value == NULL)
-		return malloc_err();
+		alloc_err(
+			MALLOC_ERR_MSG,
+			SIZE_MALLOC_ERR_MSG
+		);
 
 	value->type = LVAL_QEXPR;
 	value->count = 0;
@@ -677,7 +677,7 @@ struct lval *lval_qexpr(void)
 	return value;
 }
 
-struct lval *malloc_err(void)
+void alloc_err(const char *msg, size_t msg_len)
 {
 	/*
 	 * Static variable or function must be
@@ -691,11 +691,8 @@ struct lval *malloc_err(void)
 	 * - https://web.archive.org/web/20080624094524/http://www.space.unibe.ch/comp_doc/c_manual/C/SYNTAX/static.htm
 	 * - https://stackoverflow.com/a/2929077
 	 */
-	static struct lval malloc_err;
-	malloc_err.type = LVAL_MALLOC_FAILED;
-	malloc_err.err = "malloc failed";
-
-	return &malloc_err;
+	write(STDERR_FILENO, msg, msg_len);
+	exit(69);
 }
 
 /*

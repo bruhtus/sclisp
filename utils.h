@@ -4,8 +4,10 @@
 	(sizeof(type) * CHAR_BIT) - 1 \
 )
 
+#define MALLOC_ERR_MSG "malloc failed\n"
+#define SIZE_MALLOC_ERR_MSG sizeof(MALLOC_ERR_MSG)
+
 enum lval_type {
-	LVAL_MALLOC_FAILED = -2,
 	LVAL_ERR = -1,
 	LVAL_NUM = 1,
 	LVAL_SYM = 2,
@@ -74,6 +76,6 @@ struct lval *lval_sym(char *sym);
 struct lval *lval_sexpr(void);
 struct lval *lval_qexpr(void);
 
-struct lval *malloc_err(void);
+void alloc_err(const char *msg, size_t msg_len);
 
 int stringcmp(const char *str1, const char *str2);
