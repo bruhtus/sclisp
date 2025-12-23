@@ -148,12 +148,40 @@ int main(void)
 	 * What does the difference between `char (*)[4]` and
 	 * `char *`?
 	 *
-	 * My hypothesis is that `char (*)[4]` is similar to
-	 * 2-dimensional array with the column of 4 (?). Still
-	 * not sure, need more info.
+	 * `char (*)[4]` is a pointer to the
+	 * _whole array of 4 char_ and `char *` is a pointer
+	 * to the char type.
 	 *
-	 * Reference:
-	 * https://stackoverflow.com/questions/9970295/life-time-of-a-string-literal-in-c#comment12737771_9970305
+	 * When we have `char (*)[4]`, we have a pointer to
+	 * an array and dereferencing those pointer will give
+	 * us the _array itself_, not the _element_ inside the
+	 * array.
+	 *
+	 * To get the element inside the array with type
+	 * `char (*)[4]`, we need another dereferencing. One
+	 * dereference to get the _array itself_, and another
+	 * one to get the _element of the array_. Thus
+	 * we need to dereference twice to access the
+	 * _element of array_ inside type `char (*)[4]`.
+	 *
+	 * `char (*)[4]` looks like a
+	 * _2-dimensional array_ `char [1][4]` because array
+	 * can only _decay_ into pointer once. That's why
+	 * the _behavior_ kind of similar.
+	 *
+	 * So in case of 2-dimensional array,
+	 * the array decay to
+	 * _pointer of array_ instead of _pointer of pointer_.
+	 *
+	 * When we got the __array type__, it means we got
+	 * the _whole array_ instead of just _one of the
+	 * array's element_.
+	 *
+	 * References:
+	 * - https://stackoverflow.com/questions/9970295/life-time-of-a-string-literal-in-c#comment12737771_9970305
+	 * - https://www.log2base2.com/C/pointer/pointer-to-an-array.html
+	 * - https://stackoverflow.com/a/1083507
+	 * - https://c-faq.com/aryptr/pass2dary.html
 	 */
 	char (*confusion)[4] = &"abd";
 	printf("confusion: %s\n", confusion);
