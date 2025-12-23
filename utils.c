@@ -677,19 +677,28 @@ struct lval *lval_qexpr(void)
 	return value;
 }
 
+/*
+ * Static variable or function must be
+ * resolved at compile-time, so we can't use
+ * another variable or return value of another
+ * function call.
+ *
+ * References:
+ * - https://software.codidact.com/posts/285050
+ * - https://web.archive.org/web/20080624102132/http://www.space.unibe.ch/comp_doc/c_manual/C/CONCEPT/storage_class.html
+ * - https://web.archive.org/web/20080624094524/http://www.space.unibe.ch/comp_doc/c_manual/C/SYNTAX/static.htm
+ * - https://stackoverflow.com/a/2929077
+ *
+ * TODO:
+ * Try using static keyword with this function.
+ */
 void alloc_err(const char *msg, size_t msg_len)
 {
 	/*
-	 * Static variable or function must be
-	 * resolved at compile-time, so we can't use
-	 * another variable or return value of another
-	 * function call.
-	 *
-	 * References:
-	 * - https://software.codidact.com/posts/285050
-	 * - https://web.archive.org/web/20080624102132/http://www.space.unibe.ch/comp_doc/c_manual/C/CONCEPT/storage_class.html
-	 * - https://web.archive.org/web/20080624094524/http://www.space.unibe.ch/comp_doc/c_manual/C/SYNTAX/static.htm
-	 * - https://stackoverflow.com/a/2929077
+	 * Using write() instead of printf() because as far
+	 * as i understand, printf() using malloc() too. So
+	 * if we failed allocating the memory, using printf()
+	 * might also failed too.
 	 */
 	write(STDERR_FILENO, msg, msg_len);
 	exit(69);
