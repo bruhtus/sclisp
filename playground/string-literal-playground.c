@@ -193,6 +193,7 @@ int main(void)
 	printf("confusion[0][1]: %c\n", confusion[0][1]);
 	printf("confusion[0][2]: %c\n", confusion[0][2]);
 	printf("(*confusion)[2]: %c\n", (*confusion)[2]);
+	printf("*((*confusion) + 2): %c\n", *((*confusion) + 2));
 	printf(
 		"null terminator confusion: %d\n",
 		confusion[0][3] == '\0'
