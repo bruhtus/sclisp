@@ -33,7 +33,7 @@ int main(void)
 	 */
 	memmove(
 		new_arr,
-		&arr,
+		arr,
 		sizeof(arr)
 	);
 
