@@ -12,6 +12,9 @@
 #define MALLOC_ERR_MSG "malloc failed\n"
 #define SIZE_MALLOC_ERR_MSG sizeof(MALLOC_ERR_MSG)
 
+#define REALLOC_ERR_MSG "realloc failed\n"
+#define SIZE_REALLOC_ERR_MSG sizeof(REALLOC_ERR_MSG)
+
 enum lval_type {
 	LVAL_ERR = -1,
 	LVAL_NUM = 1,
