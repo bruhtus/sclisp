@@ -2,6 +2,28 @@
 #include "utils.h"
 #include "limits.h"
 
+/*
+ * Static variable or function must be
+ * resolved at compile-time, so we can't use
+ * another variable or return value of another
+ * function call.
+ *
+ * References:
+ * - https://software.codidact.com/posts/285050
+ * - https://web.archive.org/web/20080624102132/http://www.space.unibe.ch/comp_doc/c_manual/C/CONCEPT/storage_class.html
+ * - https://web.archive.org/web/20080624094524/http://www.space.unibe.ch/comp_doc/c_manual/C/SYNTAX/static.htm
+ * - https://stackoverflow.com/a/2929077
+ */
+static struct lval *lval_err(const char *mes);
+
+static struct lval *lval_read_num(mpc_ast_t *ast);
+static struct lval *lval_num(double num);
+static struct lval *lval_sym(char *sym);
+static struct lval *lval_sexpr(void);
+static struct lval *lval_qexpr(void);
+
+static void alloc_err(const char *msg, size_t msg_len);
+
 struct lval *lval_eval(struct lval *value)
 {
 	if (value->type == LVAL_SEXPR)
@@ -548,7 +570,7 @@ void lval_del(struct lval *value)
 	free(value);
 }
 
-struct lval *lval_err(const char *mes)
+static struct lval *lval_err(const char *mes)
 {
 	struct lval *value = malloc(sizeof(*value));
 
@@ -591,7 +613,7 @@ struct lval *lval_err(const char *mes)
 	return value;
 }
 
-struct lval *lval_read_num(mpc_ast_t *ast)
+static struct lval *lval_read_num(mpc_ast_t *ast)
 {
 	double num = strtod(ast->contents, NULL);
 
@@ -600,7 +622,7 @@ struct lval *lval_read_num(mpc_ast_t *ast)
 		: lval_num(num);
 }
 
-struct lval *lval_num(double num)
+static struct lval *lval_num(double num)
 {
 	struct lval *value = malloc(sizeof(*value));
 
@@ -616,7 +638,7 @@ struct lval *lval_num(double num)
 	return value;
 }
 
-struct lval *lval_sym(char *sym)
+static struct lval *lval_sym(char *sym)
 {
 	struct lval *value = malloc(sizeof(*value));
 
@@ -643,7 +665,7 @@ struct lval *lval_sym(char *sym)
 	return value;
 }
 
-struct lval *lval_sexpr(void)
+static struct lval *lval_sexpr(void)
 {
 	struct lval *value = malloc(sizeof(*value));
 
@@ -660,7 +682,7 @@ struct lval *lval_sexpr(void)
 	return value;
 }
 
-struct lval *lval_qexpr(void)
+static struct lval *lval_qexpr(void)
 {
 	struct lval *value = malloc(sizeof(*value));
 
@@ -677,22 +699,7 @@ struct lval *lval_qexpr(void)
 	return value;
 }
 
-/*
- * Static variable or function must be
- * resolved at compile-time, so we can't use
- * another variable or return value of another
- * function call.
- *
- * References:
- * - https://software.codidact.com/posts/285050
- * - https://web.archive.org/web/20080624102132/http://www.space.unibe.ch/comp_doc/c_manual/C/CONCEPT/storage_class.html
- * - https://web.archive.org/web/20080624094524/http://www.space.unibe.ch/comp_doc/c_manual/C/SYNTAX/static.htm
- * - https://stackoverflow.com/a/2929077
- *
- * TODO:
- * Try using static keyword with this function.
- */
-void alloc_err(const char *msg, size_t msg_len)
+static void alloc_err(const char *msg, size_t msg_len)
 {
 	/*
 	 * Using write() instead of printf() because as far

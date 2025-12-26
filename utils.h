@@ -1,5 +1,10 @@
 #include "mpc.h"
 
+/*
+ * Reference about header file:
+ * - https://www.gnu.org/software/c-intro-and-ref/manual/html_node/Once_002dOnly-Headers.html
+ * - https://stackoverflow.com/q/232785 (#pragma directive).
+ */
 #define MAX_BIT_SIZE(type) ( \
 	(sizeof(type) * CHAR_BIT) - 1 \
 )
@@ -68,14 +73,5 @@ void lval_print(struct lval *value);
 
 struct lval *lval_add(struct lval *v1, struct lval *v2);
 void lval_del(struct lval *value);
-
-struct lval *lval_err(const char *mes);
-struct lval *lval_read_num(mpc_ast_t *ast);
-struct lval *lval_num(double num);
-struct lval *lval_sym(char *sym);
-struct lval *lval_sexpr(void);
-struct lval *lval_qexpr(void);
-
-void alloc_err(const char *msg, size_t msg_len);
 
 int stringcmp(const char *str1, const char *str2);
