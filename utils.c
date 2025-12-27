@@ -45,6 +45,7 @@ struct lval *lval_eval_sexpr(struct lval *value)
 	 * Keep in mind that this method is tested on 64-bit
 	 * system with char has 1 byte size, so this might not
 	 * work on other system.
+	 *
 	 * And also, this method only tested on the
 	 * signed integer, so this method might not work
 	 * for unsigned integer where the overflow value is
@@ -54,6 +55,7 @@ struct lval *lval_eval_sexpr(struct lval *value)
 	 * - http://www.fefe.de/intof.html
 	 * - https://stackoverflow.com/a/21650326
 	 * - https://www.programiz.com/c-programming/bitwise-operators
+	 * - https://stackoverflow.com/a/141873 (right or left shift operator).
 	 */
 	if ((value->count >> MAX_BIT_SIZE(value->count)) != 0) {
 		lval_del(value);
