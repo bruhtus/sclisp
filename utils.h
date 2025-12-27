@@ -1,8 +1,13 @@
 /*
+ * Only include header file once.
+ *
  * Reference about header file:
  * - https://www.gnu.org/software/c-intro-and-ref/manual/html_node/Once_002dOnly-Headers.html
  * - https://stackoverflow.com/q/232785 (#pragma directive).
  */
+#ifndef SCLISP_UTILS
+#define SCLISP_UTILS
+
 #define MAX_BIT_SIZE(type) ( \
 	(sizeof(type) * CHAR_BIT) - 1 \
 )
@@ -81,3 +86,5 @@ struct lval *lval_sexpr(void);
 struct lval *lval_qexpr(void);
 
 int stringcmp(const char *str1, const char *str2);
+
+#endif /* sclisp utils included */
