@@ -1,7 +1,11 @@
 #include "utils.h"
 
-#include <unistd.h>
 #include <limits.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 /*
  * Static variable or function must be
@@ -15,14 +19,6 @@
  * - https://web.archive.org/web/20080624094524/http://www.space.unibe.ch/comp_doc/c_manual/C/SYNTAX/static.htm
  * - https://stackoverflow.com/a/2929077
  */
-static struct lval *lval_err(const char *mes);
-
-static struct lval *lval_read_num(mpc_ast_t *ast);
-static struct lval *lval_num(double num);
-static struct lval *lval_sym(char *sym);
-static struct lval *lval_sexpr(void);
-static struct lval *lval_qexpr(void);
-
 static void alloc_err(const char *msg, size_t msg_len);
 
 struct lval *lval_eval(struct lval *value)
@@ -442,44 +438,6 @@ struct lval *lval_pop(struct lval *value, int i)
 	return item;
 }
 
-struct lval *lval_read(mpc_ast_t *ast)
-{
-	int i;
-	struct lval *value = NULL;
-
-	if (strstr(ast->tag, "number"))
-		return lval_read_num(ast);
-
-	if (strstr(ast->tag, "symbol"))
-		return lval_sym(ast->contents);
-
-	/*
-	 * Symbol > is the root for the parser (?).
-	 */
-	if (*ast->tag == '>' || strstr(ast->tag, "sexpr"))
-		value = lval_sexpr();
-
-	if (strstr(ast->tag, "qexpr"))
-		value = lval_qexpr();
-
-	for (i = 0; i < ast->children_num; i++) {
-		if (*ast->children[i]->contents == '('
-			|| *ast->children[i]->contents == ')'
-			|| *ast->children[i]->contents == '{'
-			|| *ast->children[i]->contents == '}'
-			|| stringcmp(ast->children[i]->tag, "regex") == 0
-		)
-			continue;
-
-		value = lval_add(
-			value,
-			lval_read(ast->children[i])
-		);
-	}
-
-	return value;
-}
-
 void lval_println(struct lval *value)
 {
 	lval_print(value);
@@ -581,7 +539,7 @@ void lval_del(struct lval *value)
 	free(value);
 }
 
-static struct lval *lval_err(const char *mes)
+struct lval *lval_err(const char *mes)
 {
 	struct lval *value = malloc(sizeof(*value));
 
@@ -624,16 +582,7 @@ static struct lval *lval_err(const char *mes)
 	return value;
 }
 
-static struct lval *lval_read_num(mpc_ast_t *ast)
-{
-	double num = strtod(ast->contents, NULL);
-
-	return num == 0 && errno == ERANGE
-		? lval_err("invalid number")
-		: lval_num(num);
-}
-
-static struct lval *lval_num(double num)
+struct lval *lval_num(double num)
 {
 	struct lval *value = malloc(sizeof(*value));
 
@@ -649,7 +598,7 @@ static struct lval *lval_num(double num)
 	return value;
 }
 
-static struct lval *lval_sym(char *sym)
+struct lval *lval_sym(char *sym)
 {
 	struct lval *value = malloc(sizeof(*value));
 
@@ -676,7 +625,7 @@ static struct lval *lval_sym(char *sym)
 	return value;
 }
 
-static struct lval *lval_sexpr(void)
+struct lval *lval_sexpr(void)
 {
 	struct lval *value = malloc(sizeof(*value));
 
@@ -693,7 +642,7 @@ static struct lval *lval_sexpr(void)
 	return value;
 }
 
-static struct lval *lval_qexpr(void)
+struct lval *lval_qexpr(void)
 {
 	struct lval *value = malloc(sizeof(*value));
 

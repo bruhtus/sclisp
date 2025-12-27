@@ -1,10 +1,13 @@
 #include "utils.h"
+#include "mpc.h"
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 
 #include <editline/readline.h>
+
+static struct lval *lval_read(mpc_ast_t *ast);
+static struct lval *lval_read_num(mpc_ast_t *ast);
 
 int main(void)
 {
@@ -85,4 +88,51 @@ int main(void)
 
 	mpc_cleanup(parsers_len, init_parsers);
 	return 0;
+}
+
+static struct lval *lval_read(mpc_ast_t *ast)
+{
+	int i;
+	struct lval *value = NULL;
+
+	if (strstr(ast->tag, "number"))
+		return lval_read_num(ast);
+
+	if (strstr(ast->tag, "symbol"))
+		return lval_sym(ast->contents);
+
+	/*
+	 * Symbol > is the root for the parser (?).
+	 */
+	if (*ast->tag == '>' || strstr(ast->tag, "sexpr"))
+		value = lval_sexpr();
+
+	if (strstr(ast->tag, "qexpr"))
+		value = lval_qexpr();
+
+	for (i = 0; i < ast->children_num; i++) {
+		if (*ast->children[i]->contents == '('
+			|| *ast->children[i]->contents == ')'
+			|| *ast->children[i]->contents == '{'
+			|| *ast->children[i]->contents == '}'
+			|| stringcmp(ast->children[i]->tag, "regex") == 0
+		)
+			continue;
+
+		value = lval_add(
+			value,
+			lval_read(ast->children[i])
+		);
+	}
+
+	return value;
+}
+
+static struct lval *lval_read_num(mpc_ast_t *ast)
+{
+	double num = strtod(ast->contents, NULL);
+
+	return num == 0 && errno == ERANGE
+		? lval_err("invalid number")
+		: lval_num(num);
 }

@@ -1,5 +1,3 @@
-#include "mpc.h"
-
 /*
  * Reference about header file:
  * - https://www.gnu.org/software/c-intro-and-ref/manual/html_node/Once_002dOnly-Headers.html
@@ -68,7 +66,6 @@ struct lval *builtin_len(struct lval *value);
 struct lval *lval_join(struct lval *v1, struct lval *v2);
 struct lval *lval_take(struct lval *value, int i);
 struct lval *lval_pop(struct lval *value, int i);
-struct lval *lval_read(mpc_ast_t *ast);
 
 void lval_println(struct lval *value);
 void lval_expr_print(struct lval *v, char open, char close);
@@ -76,5 +73,11 @@ void lval_print(struct lval *value);
 
 struct lval *lval_add(struct lval *v1, struct lval *v2);
 void lval_del(struct lval *value);
+
+struct lval *lval_err(const char *mes);
+struct lval *lval_num(double num);
+struct lval *lval_sym(char *sym);
+struct lval *lval_sexpr(void);
+struct lval *lval_qexpr(void);
 
 int stringcmp(const char *str1, const char *str2);
