@@ -1,6 +1,7 @@
-#include <unistd.h>
 #include "utils.h"
-#include "limits.h"
+
+#include <unistd.h>
+#include <limits.h>
 
 /*
  * Static variable or function must be
