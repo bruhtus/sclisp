@@ -38,6 +38,11 @@ void printPtrArray(int (*array)[3])
 		"sizeof pointer to array: %d\n",
 		sizeof(array)
 	);
+
+	printf(
+		"sizeof pointer to array dereference: %d\n",
+		sizeof(*array)
+	);
 }
 
 void printLength(int *array)
