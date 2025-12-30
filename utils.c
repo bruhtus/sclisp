@@ -2,6 +2,7 @@
 
 #include <limits.h>
 #include <math.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -690,4 +691,43 @@ int stringcmp(const char *str1, const char *str2)
 
 	int result = (unsigned char)*str1 - (unsigned char)*str2;
 	return result;
+}
+
+/*
+ * It seems like when using realloc() with the NULL value for
+ * provided memory block, realloc() become equivalent to
+ * malloc().
+ *
+ * For example:
+ * realloc(NULL, sizeof(int) * 2)
+ * equivalent to
+ * malloc(sizeof(int) * 2)
+ *
+ * References:
+ * - https://lteo.net/blog/2014/10/28/reallocarray-in-openbsd-integer-overflow-detection-for-free/
+ * - http://cvsweb.openbsd.org/cgi-bin/cvsweb/~checkout~/src/lib/libc/stdlib/reallocarray.c
+ * - https://stackoverflow.com/a/2849850 (__FILE__ and __LINE__ preprocessor macro)
+ */
+void *alloc_util(
+	void *ptr,
+	size_t total_elements,
+	size_t size,
+	const char *filename,
+	unsigned int line_number
+)
+{
+	if (
+		(total_elements >= INT_OVERFLOW_VALUE || size >= INT_OVERFLOW_VALUE) &&
+		total_elements > 0 &&
+		(SIZE_MAX / total_elements) < size
+	) {
+		printf(
+			"Error: integer overflow on %s:%u\n",
+			filename,
+			line_number
+		);
+		exit(42);
+	}
+
+	return realloc(ptr, total_elements * size);
 }

@@ -4,12 +4,27 @@
  * Reference about header file:
  * - https://www.gnu.org/software/c-intro-and-ref/manual/html_node/Once_002dOnly-Headers.html
  * - https://stackoverflow.com/q/232785 (#pragma directive).
+ * - https://stackoverflow.com/a/1804719 (About include in header file).
  */
 #ifndef SCLISP_UTILS
 #define SCLISP_UTILS
 
+#include <stddef.h>
+
 #define MAX_BIT_SIZE(type) ( \
 	(sizeof(type) * CHAR_BIT) - 1 \
+)
+
+/*
+ * Check whether we are exceeding the PTRDIFF_MAX when using
+ * size_t.
+ *
+ * References:
+ * - https://lteo.net/blog/2014/10/28/reallocarray-in-openbsd-integer-overflow-detection-for-free/
+ * - http://cvsweb.openbsd.org/cgi-bin/cvsweb/~checkout~/src/lib/libc/stdlib/reallocarray.c
+ */
+#define INT_OVERFLOW_VALUE ( \
+	(size_t)1 << MAX_BIT_SIZE(size_t) \
 )
 
 #define MALLOC_ERR_MSG "malloc failed\n"
@@ -86,5 +101,17 @@ struct lval *lval_sexpr(void);
 struct lval *lval_qexpr(void);
 
 int stringcmp(const char *str1, const char *str2);
+
+/*
+ * Similar to reallocarray() but using our internal error
+ * handling.
+ */
+void *alloc_util(
+	void *ptr,
+	size_t total_elements,
+	size_t size,
+	const char *filename,
+	unsigned int line_number
+);
 
 #endif /* sclisp utils included */
