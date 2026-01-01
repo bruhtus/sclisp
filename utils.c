@@ -416,8 +416,8 @@ struct lval *lval_pop(struct lval *value, int i)
 	struct lval *item = value->cell[i];
 
 	memmove(
-		&value->cell[i],
-		&value->cell[i+1],
+		value->cell + i,
+		value->cell + (i + 1),
 		sizeof(*value->cell) * (value->count - i - 1)
 	);
 
