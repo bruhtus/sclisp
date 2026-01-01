@@ -423,18 +423,25 @@ struct lval *lval_pop(struct lval *value, int i)
 
 	value->count--;
 
-	size_t new_size = sizeof(*value->cell) * value->count;
-
-	value->cell = realloc(
+	struct lval **new_alloc = alloc_util(
 		value->cell,
-		new_size
+		value->count,
+		sizeof(*value->cell),
+		__FILE__,
+		__LINE__
 	);
 
-	if (value->cell == NULL && new_size != 0)
+	if (
+		new_alloc == NULL &&
+		(sizeof(*value->cell) * value->count) > 0
+	)
 		alloc_err(
 			REALLOC_ERR_MSG,
 			SIZE_REALLOC_ERR_MSG
 		);
+
+	value->cell = new_alloc;
+	new_alloc = NULL;
 
 	return item;
 }
