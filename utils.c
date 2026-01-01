@@ -717,9 +717,8 @@ void *alloc_util(
 )
 {
 	if (
-		(total_elements >= INT_OVERFLOW_VALUE || size >= INT_OVERFLOW_VALUE) &&
-		total_elements > 0 &&
-		(SIZE_MAX / total_elements) < size
+		(total_elements >= INT_OVERFLOW_VALUE || size >= INT_OVERFLOW_VALUE) ||
+		(total_elements > 0 && (SIZE_MAX / total_elements) < size)
 	) {
 		printf(
 			"Error: integer overflow on %s:%u\n",
