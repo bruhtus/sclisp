@@ -27,6 +27,12 @@ void something_big(void)
 	printf("__FUNCTION__: %s\n", __FUNCTION__);
 	printf("__FUNCTION__: %d\n", strlen(__FUNCTION__));
 
+	/*
+	 * This is a GNU C extension.
+	 *
+	 * Reference:
+	 * https://www.gnu.org/software/c-intro-and-ref/manual/html_node/Predefined-Macros.html
+	 */
 	printf("__PRETTY_FUNCTION__: %s\n", __PRETTY_FUNCTION__);
 	printf("__PRETTY_FUNCTION__: %d\n", strlen(__PRETTY_FUNCTION__));
 }
