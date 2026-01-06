@@ -12,6 +12,16 @@ int main(void)
 	printf("__FILE__ sizeof: %d\n", sizeof(__FILE__));
 
 	/*
+	 * Seems like __FILE__ expands to string literal and
+	 * possibly have the static storage duration too (?).
+	 */
+	printf("__FILE__ address: %p\n", __FILE__);
+	printf(
+		"filename string literal address: %p\n",
+		"playground/length-file-line-macro.c"
+	);
+
+	/*
 	 * Reference:
 	 * https://stackoverflow.com/questions/8257714/how-can-i-convert-an-int-to-a-string-in-c#comment53469384_8257728
 	 */
