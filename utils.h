@@ -11,33 +11,6 @@
 
 #include <stddef.h>
 
-#define MAX_BIT_SIZE(type) ( \
-	(sizeof(type) * CHAR_BIT) - 1 \
-)
-
-/*
- * Check whether we are exceeding the PTRDIFF_MAX when using
- * size_t.
- *
- * Currently this is only print out the overflow value for
- * signed integer (int, long, long long). So if we provide
- * the unsigned integer type, like `unsigned int`, we will
- * get the value of INT_MAX + 1.
- *
- * References:
- * - https://lteo.net/blog/2014/10/28/reallocarray-in-openbsd-integer-overflow-detection-for-free/
- * - http://cvsweb.openbsd.org/cgi-bin/cvsweb/~checkout~/src/lib/libc/stdlib/reallocarray.c
- */
-#define OVERFLOW_VALUE(type) ( \
-	(size_t)1 << MAX_BIT_SIZE(type) \
-)
-
-#define MALLOC_ERR_MSG "malloc failed\n"
-#define SIZE_MALLOC_ERR_MSG sizeof(MALLOC_ERR_MSG)
-
-#define REALLOC_ERR_MSG "realloc failed\n"
-#define SIZE_REALLOC_ERR_MSG sizeof(REALLOC_ERR_MSG)
-
 enum lval_type {
 	LVAL_ERR = -1,
 	LVAL_NUM = 1,
