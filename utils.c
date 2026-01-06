@@ -758,6 +758,16 @@ void *alloc_util(
 	unsigned int line_number
 )
 {
+	/*
+	 * We PTRDIFF_MAX instead of SIZE_MAX because when
+	 * we try to allocate more than PTRDIFF_MAX bytes,
+	 * realloc() will consider that an error and will
+	 * return NULL.
+	 *
+	 * So let's try preventing that error too in the
+	 * multiplication overflow checker and see how it
+	 * goes.
+	 */
 	if (
 		(
 		 total_elements >= OVERFLOW_VALUE(total_elements) ||
@@ -765,7 +775,7 @@ void *alloc_util(
 		) ||
 		(
 		 total_elements > 0 &&
-		 (SIZE_MAX / total_elements) < size
+		 (PTRDIFF_MAX / total_elements) < size
 		)
 	) {
 		printf(
