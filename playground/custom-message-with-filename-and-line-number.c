@@ -37,13 +37,13 @@ char *msg_malloc(
  */
 #ifdef DEBUG
 	/*
-	 * msg (playground/snprintf-with-malloc.c:69)\0
+	 * msg (playground/snprintf-with-malloc.c:69)\0\n
 	 */
 	limit = len_msg + 2 + len_filename + 1 + len_line_number + 2;
 	fmt = "%s (%s:%u)\n";
 #else
 	/*
-	 * msg\0
+	 * msg\0\n
 	 */
 	limit = len_msg + 1;
 	fmt = "%s\n";
