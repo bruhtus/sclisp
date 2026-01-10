@@ -55,7 +55,12 @@
  * - https://web.archive.org/web/20080624094524/http://www.space.unibe.ch/comp_doc/c_manual/C/SYNTAX/static.htm
  * - https://stackoverflow.com/a/2929077
  */
-static void alloc_err(const char *msg, size_t msg_len);
+static void lval_expr_print(
+	struct lval *v,
+	char open,
+	char close
+);
+static void lval_print(struct lval *value);
 
 struct lval *lval_eval(struct lval *value)
 {
@@ -487,7 +492,11 @@ void lval_println(struct lval *value)
 	putchar('\n');
 }
 
-void lval_expr_print(struct lval *v, char open, char close)
+static void lval_expr_print(
+	struct lval *v,
+	char open,
+	char close
+)
 {
 	int i;
 
@@ -508,7 +517,7 @@ void lval_expr_print(struct lval *v, char open, char close)
 	putchar(close);
 }
 
-void lval_print(struct lval *value)
+static void lval_print(struct lval *value)
 {
 	switch (value->type) {
 		case LVAL_NUM:
@@ -702,7 +711,7 @@ struct lval *lval_qexpr(void)
 	return value;
 }
 
-static void alloc_err(const char *msg, size_t msg_len)
+void alloc_err(const char *msg, size_t msg_len)
 {
 	/*
 	 * Using write() instead of printf() because as far

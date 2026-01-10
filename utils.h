@@ -66,8 +66,6 @@ struct lval *lval_take(struct lval *value, int i);
 struct lval *lval_pop(struct lval *value, int i);
 
 void lval_println(struct lval *value);
-void lval_expr_print(struct lval *v, char open, char close);
-void lval_print(struct lval *value);
 
 struct lval *lval_add(struct lval *v1, struct lval *v2);
 void lval_del(struct lval *value);
@@ -79,6 +77,8 @@ struct lval *lval_sexpr(void);
 struct lval *lval_qexpr(void);
 
 int stringcmp(const char *str1, const char *str2);
+
+void alloc_err(const char *msg, size_t msg_len);
 
 /*
  * Similar to reallocarray() but using our internal error
