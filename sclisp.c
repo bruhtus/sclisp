@@ -133,6 +133,10 @@ static struct lval *lval_read_num(mpc_ast_t *ast)
 	double num = strtod(ast->contents, NULL);
 
 	return num == 0 && errno == ERANGE
-		? lval_err("invalid number")
+		? lval_err(
+			"invalid number",
+			__FILE__,
+			__LINE__
+		)
 		: lval_num(num);
 }

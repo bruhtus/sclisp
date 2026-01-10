@@ -97,7 +97,9 @@ struct lval *lval_eval_sexpr(struct lval *value)
 	if ((value->count >> MAX_BIT_SIZE(value->count)) != 0) {
 		lval_del(value);
 		return lval_err(
-			"value->count got integer overflow"
+			"value->count got integer overflow",
+			__FILE__,
+			__LINE__
 		);
 	}
 
@@ -120,7 +122,9 @@ struct lval *lval_eval_sexpr(struct lval *value)
 		lval_del(first);
 		lval_del(value);
 		return lval_err(
-			"s-expression does not start with symbol"
+			"s-expression does not start with symbol",
+			__FILE__,
+			__LINE__
 		);
 	}
 
@@ -184,7 +188,11 @@ struct lval *builtin(struct lval *value, char *sym)
 		return builtin_op(value, sym);
 
 	lval_del(value);
-	return lval_err("unknown symbol");
+	return lval_err(
+		"unknown symbol",
+		__FILE__,
+		__LINE__
+	);
 }
 
 struct lval *builtin_op(struct lval *value, char *op)
@@ -197,7 +205,9 @@ struct lval *builtin_op(struct lval *value, char *op)
 		if (cell->type != LVAL_NUM) {
 			lval_del(value);
 			return lval_err(
-				"cannot operate on non-number"
+				"cannot operate on non-number",
+				__FILE__,
+				__LINE__
 			);
 		}
 	}
@@ -225,7 +235,9 @@ struct lval *builtin_op(struct lval *value, char *op)
 				lval_del(next);
 
 				first = lval_err(
-					"division by zero"
+					"division by zero",
+					__FILE__,
+					__LINE__
 				);
 				break;
 			}
@@ -237,7 +249,11 @@ struct lval *builtin_op(struct lval *value, char *op)
 			double modulo = fmod(first->num, next->num);
 
 			if (isnan(modulo)) {
-				first = lval_err("invalid modulo operation");
+				first = lval_err(
+					"invalid modulo operation",
+					__FILE__,
+					__LINE__
+				);
 				break;
 			}
 
@@ -248,7 +264,11 @@ struct lval *builtin_op(struct lval *value, char *op)
 			double power = pow(first->num, next->num);
 
 			if (isnan(power)) {
-				first = lval_err("invalid power operation");
+				first = lval_err(
+					"invalid power operation",
+					__FILE__,
+					__LINE__
+				);
 				break;
 			}
 
@@ -267,21 +287,27 @@ struct lval *builtin_head(struct lval *value)
 	if (value->count != 1) {
 		lval_del(value);
 		return lval_err(
-			"builtin_head() passed too many arguments"
+			"builtin_head() passed too many arguments",
+			__FILE__,
+			__LINE__
 		);
 	}
 
 	if (value->cell[0]->type != LVAL_QEXPR) {
 		lval_del(value);
 		return lval_err(
-			"builtin_head() passed incorrect type"
+			"builtin_head() passed incorrect type",
+			__FILE__,
+			__LINE__
 		);
 	}
 
 	if (value->cell[0]->count == 0) {
 		lval_del(value);
 		return lval_err(
-			"builtin_head() passed empty list"
+			"builtin_head() passed empty list",
+			__FILE__,
+			__LINE__
 		);
 	}
 
@@ -300,21 +326,27 @@ struct lval *builtin_tail(struct lval *value)
 	if (value->count != 1) {
 		lval_del(value);
 		return lval_err(
-			"builtin_tail() passed too many arguments"
+			"builtin_tail() passed too many arguments",
+			__FILE__,
+			__LINE__
 		);
 	}
 
 	if (value->cell[0]->type != LVAL_QEXPR) {
 		lval_del(value);
 		return lval_err(
-			"builtin_tail() passed incorrect type"
+			"builtin_tail() passed incorrect type",
+			__FILE__,
+			__LINE__
 		);
 	}
 
 	if (value->cell[0]->count == 0) {
 		lval_del(value);
 		return lval_err(
-			"builtin_tail() passed empty list"
+			"builtin_tail() passed empty list",
+			__FILE__,
+			__LINE__
 		);
 	}
 
@@ -338,14 +370,18 @@ struct lval *builtin_eval(struct lval *value)
 	if (value->count != 1) {
 		lval_del(value);
 		return lval_err(
-			"builtin_eval() passed too many arguments"
+			"builtin_eval() passed too many arguments",
+			__FILE__,
+			__LINE__
 		);
 	}
 
 	if (value->cell[0]->type != LVAL_QEXPR) {
 		lval_del(value);
 		return lval_err(
-			"builtin_eval() passed incorrect type"
+			"builtin_eval() passed incorrect type",
+			__FILE__,
+			__LINE__
 		);
 	}
 
@@ -363,7 +399,9 @@ struct lval *builtin_join(struct lval *value)
 		if (value->cell[i]->type != LVAL_QEXPR) {
 			lval_del(value);
 			return lval_err(
-				"builtin_join() passed incorrect type"
+				"builtin_join() passed incorrect type",
+				__FILE__,
+				__LINE__
 			);
 		}
 	}
@@ -397,14 +435,18 @@ struct lval *builtin_len(struct lval *value)
 	if (value->count != 1) {
 		lval_del(value);
 		return lval_err(
-			"builtin_len() passed too many arguments"
+			"builtin_len() passed too many arguments",
+			__FILE__,
+			__LINE__
 		);
 	}
 
 	if (value->cell[0]->type != LVAL_QEXPR) {
 		lval_del(value);
 		return lval_err(
-			"builtin_len() passed incorrect type"
+			"builtin_len() passed incorrect type",
+			__FILE__,
+			__LINE__
 		);
 	}
 
@@ -568,8 +610,11 @@ void lval_del(struct lval *value)
 
 	switch (value->type) {
 		case LVAL_NUM:
-		case LVAL_ERR:
 		case LVAL_SYM:
+			break;
+
+		case LVAL_ERR:
+			free(value->err);
 			break;
 
 		case LVAL_QEXPR_LEN:
@@ -591,8 +636,15 @@ void lval_del(struct lval *value)
 	free(value);
 }
 
-struct lval *lval_err(const char *mes)
+struct lval *lval_err(
+	const char *mes,
+	const char *filename,
+	unsigned int line_number
+)
 {
+	unsigned int limit;
+	const char *fmt;
+
 	struct lval *value = malloc(sizeof(*value));
 
 	if (value == NULL)
@@ -603,9 +655,28 @@ struct lval *lval_err(const char *mes)
 
 	value->type = LVAL_ERR;
 
+	unsigned int len_mes = strlen(mes) + 1;
+
+#ifdef DEBUG
+	unsigned int len_filename = strlen(filename) + 1;
+
+	unsigned int len_line_number = floor(
+		log10(line_number)
+	);
+
+	/*
+	 * mes (utils.c:69)\0
+	 */
+	limit = len_mes + 2 + len_filename + 1 + len_line_number + 2;
+	fmt = "%s (%s:%u)";
+#else
+	limit = len_mes + 1;
+	fmt = "%s";
+#endif
+
 	/*
 	 * We don't need to use malloc() and strcpy()
-	 * because we use string literal, which has
+	 * if we use string literal, which has
 	 * static storage duration and __persist__ the
 	 * entire execution of the program. So string
 	 * literal does not result in __dangling
@@ -629,7 +700,22 @@ struct lval *lval_err(const char *mes)
 	 * - https://stackoverflow.com/a/55931977
 	 * - https://stackoverflow.com/a/55723074
 	 */
-	value->err = mes;
+	value->err = malloc(limit);
+
+	if (value->err == NULL)
+		alloc_err(
+			MALLOC_ERR_MSG,
+			SIZE_MALLOC_ERR_MSG
+		);
+
+	snprintf(
+		value->err,
+		limit,
+		fmt,
+		mes,
+		filename,
+		line_number
+	);
 
 	return value;
 }
