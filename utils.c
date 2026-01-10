@@ -667,10 +667,10 @@ struct lval *lval_err(
 	/*
 	 * mes (utils.c:69)\0
 	 */
-	limit = len_mes + 2 + len_filename + 1 + len_line_number + 2;
+	limit = len_mes + 2 + len_filename + 1 + len_line_number + 1;
 	fmt = "%s (%s:%u)";
 #else
-	limit = len_mes + 1;
+	limit = len_mes;
 	fmt = "%s";
 #endif
 
