@@ -83,6 +83,11 @@ struct lval *lval_err(
 
 int stringcmp(const char *str1, const char *str2);
 
+void int_overflow_err(
+	const char *filename,
+	unsigned int line_number
+);
+
 void alloc_err(const char *msg, size_t msg_len);
 
 /*

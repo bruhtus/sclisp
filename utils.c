@@ -831,6 +831,23 @@ int stringcmp(const char *str1, const char *str2)
 }
 
 /*
+ * Why using function instead of macro reference:
+ * https://stackoverflow.com/a/9104594
+ */
+void int_overflow_err(
+	const char *filename,
+	unsigned int line_number
+)
+{
+	printf(
+		"Error: integer overflow on %s:%u\n",
+		filename,
+		line_number
+	);
+	exit(42);
+}
+
+/*
  * It seems like when using realloc() with the NULL value for
  * provided memory block, realloc() become equivalent to
  * malloc().
@@ -872,14 +889,9 @@ void *alloc_util(
 		 total_elements > 0 &&
 		 (PTRDIFF_MAX / total_elements) < size
 		)
-	) {
-		printf(
-			"Error: integer overflow on %s:%u\n",
-			filename,
-			line_number
-		);
-		exit(42);
-	}
+	)
+		int_overflow_err(filename, line_number);
+
 
 	return realloc(ptr, total_elements * size);
 }
