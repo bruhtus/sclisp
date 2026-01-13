@@ -655,19 +655,73 @@ struct lval *lval_err(
 
 	value->type = LVAL_ERR;
 
-	unsigned int len_mes = strlen(mes) + 1;
+	/*
+	 * We expected to use gcc as the compiler and gcc has
+	 * __builtin_uadd_overflow(), so if you use another
+	 * compiler, make sure that the compiler has
+	 * __builtin_uadd_overflow().
+	 */
+	unsigned int len_mes, overflow_indicator;
+
+	overflow_indicator = __builtin_uadd_overflow(
+		strlen(mes),
+		1,
+		&len_mes
+	);
+
+	if (overflow_indicator)
+		int_overflow_err(__FILE__, __LINE__);
+
 
 #ifdef DEBUG
-	unsigned int len_filename = strlen(filename) + 1;
+	/*
+	 * temp_len to store the length filename and line number.
+	 */
+	unsigned int len_filename, temp_len;
+
+	overflow_indicator = __builtin_uadd_overflow(
+		strlen(filename),
+		1,
+		&len_filename
+	);
+
+	if (overflow_indicator)
+		int_overflow_err(__FILE__, __LINE__);
 
 	unsigned int len_line_number = floor(
 		log10(line_number)
 	);
 
+	overflow_indicator = __builtin_uadd_overflow(
+		len_filename,
+		len_line_number,
+		&temp_len
+	);
+
+	if (overflow_indicator)
+		int_overflow_err(__FILE__, __LINE__);
+
 	/*
+	 * Result:
 	 * mes (utils.c:69)\0
+	 *
+	 * __builtin_addc() is a builtin function from gcc.
+	 * So if you use another compiler, make sure your
+	 * compiler has __builtin_addc().
+	 *
+	 * Reference:
+	 * https://gcc.gnu.org/onlinedocs/gcc/Integer-Overflow-Builtins.html
 	 */
-	limit = len_mes + 2 + len_filename + 1 + len_line_number + 1;
+	limit = __builtin_addc(
+		len_mes,
+		temp_len,
+		4,
+		&overflow_indicator
+	);
+
+	if (overflow_indicator)
+		int_overflow_err(__FILE__, __LINE__);
+
 	fmt = "%s (%s:%u)";
 #else
 	limit = len_mes;
