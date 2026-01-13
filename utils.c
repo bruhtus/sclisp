@@ -797,18 +797,6 @@ struct lval *lval_qexpr(void)
 	return value;
 }
 
-void alloc_err(const char *msg, size_t msg_len)
-{
-	/*
-	 * Using write() instead of printf() because as far
-	 * as i understand, printf() using malloc() too. So
-	 * if we failed allocating the memory, using printf()
-	 * might also failed too.
-	 */
-	write(STDERR_FILENO, msg, msg_len);
-	exit(69);
-}
-
 /*
  * References:
  * - https://stackoverflow.com/a/67520047
@@ -845,6 +833,18 @@ void int_overflow_err(
 		line_number
 	);
 	exit(42);
+}
+
+void alloc_err(const char *msg, size_t msg_len)
+{
+	/*
+	 * Using write() instead of printf() because as far
+	 * as i understand, printf() using malloc() too. So
+	 * if we failed allocating the memory, using printf()
+	 * might also failed too.
+	 */
+	write(STDERR_FILENO, msg, msg_len);
+	exit(69);
 }
 
 /*
