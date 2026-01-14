@@ -2,13 +2,13 @@
 
 Sclisp is a toy project for learning C programming language. It's mostly based
 on the book [Build Your Own Lisp](https://www.buildyourownlisp.com/) and using
-[mpc parser](https://github.com/orangeduck/mpc) to parse the character.
+[mpc parser](https://github.com/orangeduck/mpc) to parse the characters.
 
 There's a few tweak that didn't exist in the book, like malloc() failure
 handler and using the archive library, see [Highlights](#highlights) for more
-tweaks. There's also the `playground` directory which contains my experiment
-about call stack overflow, array in function parameter, `gcc` builtin
-arithmetic overflow function, and so on.
+tweaks info. There's also the `playground` directory which contains my
+experiment about call stack overflow, array in function parameter, `gcc`
+builtin arithmetic overflow function, and so on.
 
 The source code mostly using the linux kernel coding style as guidance, like
 no curly bracket if there's only one statement in `if-else` statement or
@@ -42,7 +42,7 @@ After you compile the source code, you can start the REPL like this:
 There's a few caveats with sclisp and some them are:
 1. Sclisp only tested in arch linux. So if you use another linux distro or
    even another operating system, you might need to tweak the source code or
-   `run` script, like the linking to readline library.
+   the `run` script, like the linking to readline library.
 
 2. Sclisp using double type for the result. This is to make parsing easier by
    only using 1 type for the number, which can cause a problem.
@@ -65,16 +65,16 @@ This is the highlight of what i did differently from the book:
    emulate the library structure with `utils.c` and `utils.h`.
 
 2. Rather than compiling the `mpc` parser over and over again, we compile
-   it once into an object file and the put that as archive library. This can
-   safe some time during compiling, especially if we did not change the parser
-   frequently.
+   it once into an object file and then put that as archive library. This can
+   safe some time during compilation process, especially if we did not change
+   the parser frequently.
 
-3. Handle case when allocation with `malloc()` or `realloc()` failure, which
+3. Handle case when allocation with `malloc()` or `realloc()` failed, which
    is returning `NULL` value, by exit the program with code 69.
 
 4. Handle integer overflow case with `gcc` builtin arithmetic overflow
-   function such as `__builtin_uadd_overflow` and `__builtin_addc` and exit
-   the program with code 42.
+   function such as `__builtin_uadd_overflow()` and `__builtin_addc()` and
+   exit the program with code 42.
 
 5. Trying to implement `reallocarray()` from the BSD system, which basically
    `realloc()` with multiplication overflow checker (still not sure if this is
@@ -85,14 +85,14 @@ This is the highlight of what i did differently from the book:
    using variadic function with `mpca_lang()` is that when we forgot to put
    `NULL` at the end of the arguments and there's unknown parser name, we will
    get segmentation fault error. That's because there's no limit when we try
-   finding the parser with `mpca_grammar_find_parser()` which will attempt to
+   to find the parser with `mpca_grammar_find_parser()` which will attempt to
    access some inaccessible memory. And by using array and array size in
    `mpc_cleanup()`, we don't need to update the arguments every time we add
    new parser as long as we use the same array as `mpca_lang()`.
 
 This is the things that i remember doing differently. There might be other
-things that i did differently which i don't remember, so if you want to
-find out more, you can check the source code.
+things that i forgot to mention, so if you want to find out more, you can
+check the source code.
 
 ## Side Notes
 
