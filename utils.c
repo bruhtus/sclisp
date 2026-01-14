@@ -595,10 +595,25 @@ struct lval *lval_add(struct lval *v1, struct lval *v2)
 {
 	v1->count++;
 
-	v1->cell = realloc(
+	struct lval **new_alloc = alloc_util(
 		v1->cell,
-		sizeof(*v1->cell) * v1->count
+		v1->count,
+		sizeof(*v1->cell),
+		__FILE__,
+		__LINE__
 	);
+
+	if (
+		new_alloc == NULL &&
+		(sizeof(*v1->cell) * v1->count) > 0
+	)
+		alloc_err(
+			REALLOC_ERR_MSG,
+			SIZE_REALLOC_ERR_MSG
+		);
+
+	v1->cell = new_alloc;
+	new_alloc = NULL;
 
 	v1->cell[v1->count - 1] = v2;
 	return v1;
