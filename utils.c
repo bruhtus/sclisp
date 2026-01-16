@@ -694,18 +694,25 @@ struct lval *lval_err(
 	 */
 	unsigned int len_filename, temp_len;
 
-	overflow_indicator = __builtin_uadd_overflow(
-		strlen(filename),
-		1,
-		&len_filename
-	);
+	/*
+	 * strlen() exclude the null terminator (\0) and
+	 * because we already add the null terminator
+	 * character in len_mes, we don't need to add another
+	 * null terminator in len_filename.
+	 */
+	len_filename = strlen(filename);
 
-	if (overflow_indicator)
-		int_overflow_err(__FILE__, __LINE__);
-
+	/*
+	 * floor(log10(...)) result is 1 character less than
+	 * the actual line number characters. For example,
+	 * floor(log10(69)) will result in 1 rather than 2.
+	 *
+	 * Reference:
+	 * https://www.dhairyashah.dev/posts/how-to-get-the-length-of-a-number-in-c/
+	 */
 	unsigned int len_line_number = floor(
 		log10(line_number)
-	);
+	) + 1;
 
 	overflow_indicator = __builtin_uadd_overflow(
 		len_filename,
