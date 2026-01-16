@@ -88,7 +88,11 @@ void int_overflow_err(
 	unsigned int line_number
 );
 
-void alloc_err(const char *msg, size_t msg_len);
+void alloc_err(
+	const char *msg,
+	const char *filename,
+	unsigned int line_number
+);
 
 /*
  * Similar to reallocarray() but using our internal error

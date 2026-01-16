@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 /*
  * It seems like putting macro in header file can result
@@ -37,11 +36,8 @@
 	(size_t)1 << MAX_BIT_SIZE(type) \
 )
 
-#define MALLOC_ERR_MSG "malloc failed\n"
-#define SIZE_MALLOC_ERR_MSG sizeof(MALLOC_ERR_MSG)
-
-#define REALLOC_ERR_MSG "realloc failed\n"
-#define SIZE_REALLOC_ERR_MSG sizeof(REALLOC_ERR_MSG)
+#define MALLOC_ERR_MSG "malloc failed"
+#define REALLOC_ERR_MSG "realloc failed"
 
 /*
  * Static variable or function must be
@@ -519,7 +515,8 @@ struct lval *lval_pop(struct lval *value, int i)
 	)
 		alloc_err(
 			REALLOC_ERR_MSG,
-			SIZE_REALLOC_ERR_MSG
+			__FILE__,
+			__LINE__
 		);
 
 	value->cell = new_alloc;
@@ -609,7 +606,8 @@ struct lval *lval_add(struct lval *v1, struct lval *v2)
 	)
 		alloc_err(
 			REALLOC_ERR_MSG,
-			SIZE_REALLOC_ERR_MSG
+			__FILE__,
+			__LINE__
 		);
 
 	v1->cell = new_alloc;
@@ -665,7 +663,8 @@ struct lval *lval_err(
 	if (value == NULL)
 		alloc_err(
 			MALLOC_ERR_MSG,
-			SIZE_MALLOC_ERR_MSG
+			__FILE__,
+			__LINE__
 		);
 
 	value->type = LVAL_ERR;
@@ -781,7 +780,8 @@ struct lval *lval_err(
 	if (value->err == NULL)
 		alloc_err(
 			MALLOC_ERR_MSG,
-			SIZE_MALLOC_ERR_MSG
+			__FILE__,
+			__LINE__
 		);
 
 	snprintf(
@@ -803,7 +803,8 @@ struct lval *lval_num(double num)
 	if (value == NULL)
 		alloc_err(
 			MALLOC_ERR_MSG,
-			SIZE_MALLOC_ERR_MSG
+			__FILE__,
+			__LINE__
 		);
 
 	value->type = LVAL_NUM;
@@ -819,7 +820,8 @@ struct lval *lval_sym(char *sym)
 	if (value == NULL)
 		alloc_err(
 			MALLOC_ERR_MSG,
-			SIZE_MALLOC_ERR_MSG
+			__FILE__,
+			__LINE__
 		);
 
 	value->type = LVAL_SYM;
@@ -846,7 +848,8 @@ struct lval *lval_sexpr(void)
 	if (value == NULL)
 		alloc_err(
 			MALLOC_ERR_MSG,
-			SIZE_MALLOC_ERR_MSG
+			__FILE__,
+			__LINE__
 		);
 
 	value->type = LVAL_SEXPR;
@@ -863,7 +866,8 @@ struct lval *lval_qexpr(void)
 	if (value == NULL)
 		alloc_err(
 			MALLOC_ERR_MSG,
-			SIZE_MALLOC_ERR_MSG
+			__FILE__,
+			__LINE__
 		);
 
 	value->type = LVAL_QEXPR;
@@ -911,15 +915,25 @@ void int_overflow_err(
 	exit(42);
 }
 
-void alloc_err(const char *msg, size_t msg_len)
+void alloc_err(
+	const char *msg,
+	const char *filename,
+	unsigned int line_number
+)
 {
 	/*
-	 * Using write() instead of printf() because as far
-	 * as i understand, printf() using malloc() too. So
-	 * if we failed allocating the memory, using printf()
-	 * might also failed too.
+	 * printf() is using stdout, which is a static buffer
+	 * that are pre-allocated during program startup. So
+	 * even though memory allocation failed, we can safely
+	 * use printf() to print out the error message.
+	 *
+	 * References:
+	 * - https://linuxvox.com/blog/which-c-standard-library-functions-use-malloc-under-the-hood/
+	 * - https://www.gnu.org/software/libc/manual/html_node/Standard-Streams.html
+	 * - https://stackoverflow.com/a/16430155
+	 * - https://stackoverflow.com/a/1244413
 	 */
-	write(STDERR_FILENO, msg, msg_len);
+	printf("%s (%s:%u)\n", msg, filename, line_number);
 	exit(69);
 }
 
