@@ -2,6 +2,7 @@
 
 void first(void);
 void second(void);
+void third(void);
 
 /*
  * This will print out only on the last printf() call, the
@@ -28,6 +29,8 @@ void second(void);
  * In GNU `glibc`, the default static buffer for `stdout` is
  * 8 kb.
  *
+ * The flushing is done by _stdout_, not the printf().
+ *
  * References:
  * [1] https://softwareengineering.stackexchange.com/a/381789
  * [2] https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap03.html#tag_03_206
@@ -39,6 +42,8 @@ int main(void)
 	first();
 	second();
 	printf("ini: %d\n", 69420);
+
+	third();
 
 	return 0;
 }
@@ -57,4 +62,17 @@ void first(void)
 void second(void)
 {
 	printf("itu: %d", 42);
+}
+
+void third(void)
+{
+	/*
+	 * Manually flush stdout without new line character.
+	 *
+	 * Reference:
+	 * https://stackoverflow.com/a/1716621
+	 */
+	printf("something ");
+	printf("big");
+	fflush(stdout);
 }
