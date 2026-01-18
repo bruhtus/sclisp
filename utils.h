@@ -63,7 +63,12 @@ struct lval *builtin_len(struct lval *value);
 
 struct lval *lval_join(struct lval *v1, struct lval *v2);
 struct lval *lval_take(struct lval *value, int i);
-struct lval *lval_pop(struct lval *value, int i);
+struct lval *lval_pop(
+	struct lval *value,
+	int i,
+	const char *filename,
+	unsigned int line_number
+);
 
 void lval_println(struct lval *value);
 

@@ -112,7 +112,15 @@ struct lval *lval_eval_sexpr(struct lval *value)
 	if (value->count == 1)
 		return lval_take(value, 0);
 
-	struct lval *first = lval_pop(value, 0);
+	struct lval *first = lval_pop(
+		value,
+		0,
+		__FILE__,
+		__LINE__
+	);
+
+	if (first->type == LVAL_ERR)
+		return first;
 
 	if (first->type != LVAL_SYM) {
 		lval_del(first);
@@ -208,13 +216,31 @@ struct lval *builtin_op(struct lval *value, char *op)
 		}
 	}
 
-	struct lval *first = lval_pop(value, 0);
+	struct lval *first = lval_pop(
+		value,
+		0,
+		__FILE__,
+		__LINE__
+	);
+
+	if (first->type == LVAL_ERR)
+		return first;
 
 	if ((*op == '-') && value->count == 0)
 		first->num = -first->num;
 
 	while (value->count > 0) {
-		struct lval *next = lval_pop(value, 0);
+		struct lval *next = lval_pop(
+			value,
+			0,
+			__FILE__,
+			__LINE__
+		);
+
+		if (next->type == LVAL_ERR) {
+			lval_del(first);
+			return next;
+		}
 
 		if (*op == '+')
 			first->num += next->num;
@@ -309,10 +335,19 @@ struct lval *builtin_head(struct lval *value)
 
 	struct lval *head = lval_take(value, 0);
 
-	while (head->count > 1)
-		lval_del(
-			lval_pop(head, 1)
+	while (head->count > 1) {
+		struct lval *rest = lval_pop(
+			head,
+			1,
+			__FILE__,
+			__LINE__
 		);
+
+		if (rest->type == LVAL_ERR)
+			return rest;
+
+		lval_del(rest);
+	}
 
 	return head;
 }
@@ -348,9 +383,17 @@ struct lval *builtin_tail(struct lval *value)
 
 	struct lval *tail = lval_take(value, 0);
 
-	lval_del(
-		lval_pop(tail, 0)
+	struct lval *rest = lval_pop(
+		tail,
+		0,
+		__FILE__,
+		__LINE__
 	);
+
+	if (rest->type == LVAL_ERR)
+		return rest;
+
+	lval_del(rest);
 
 	return tail;
 }
@@ -402,13 +445,40 @@ struct lval *builtin_join(struct lval *value)
 		}
 	}
 
-	struct lval *joined = lval_pop(value, 0);
+	struct lval *joined = lval_pop(
+		value,
+		0,
+		__FILE__,
+		__LINE__
+	);
 
-	while (value->count)
-		joined = lval_join(
-			joined,
-			lval_pop(value, 0)
+	if (joined->type == LVAL_ERR)
+		return joined;
+
+	while (value->count) {
+		struct lval *next = lval_pop(
+			value,
+			0,
+			__FILE__,
+			__LINE__
 		);
+
+		if (next->type == LVAL_ERR) {
+			lval_del(joined);
+			return next;
+		}
+
+		struct lval *new_joined = lval_join(
+			joined,
+			next
+		);
+
+		if (new_joined->type == LVAL_ERR)
+			return new_joined;
+
+		joined = new_joined;
+		new_joined = NULL;
+	}
 
 	lval_del(value);
 	return joined;
@@ -462,11 +532,24 @@ struct lval *lval_join(struct lval *v1, struct lval *v2)
 	 * Move the value of v2 into v1 and reduce the
 	 * v2 items until v2 is empty.
 	 */
-	while (v2->count)
+	while (v2->count) {
+		struct lval *element = lval_pop(
+			v2,
+			0,
+			__FILE__,
+			__LINE__
+		);
+
+		if (element->type == LVAL_ERR) {
+			lval_del(v1);
+			return element;
+		}
+
 		v1 = lval_add(
 			v1,
-			lval_pop(v2, 0)
+			element
 		);
+	}
 
 	lval_del(v2);
 	return v1;
@@ -478,7 +561,15 @@ struct lval *lval_join(struct lval *v1, struct lval *v2)
  */
 struct lval *lval_take(struct lval *value, int i)
 {
-	struct lval *item = lval_pop(value, i);
+	struct lval *item = lval_pop(
+		value,
+		i,
+		__FILE__,
+		__LINE__
+	);
+
+	if (item->type == LVAL_ERR)
+		return item;
 
 	lval_del(value);
 	return item;
@@ -489,10 +580,34 @@ struct lval *lval_take(struct lval *value, int i)
  * means that we are reducing the list's elements,
  * and then return the extracted value.
  */
-struct lval *lval_pop(struct lval *value, int i)
+struct lval *lval_pop(
+	struct lval *value,
+	int i,
+	const char *filename,
+	unsigned int line_number
+)
 {
+	if (value->count <= i) {
+		lval_del(value);
+		return lval_err(
+			"lval_pop index out of bounds",
+			filename,
+			line_number
+		);
+	}
+
 	struct lval *item = value->cell[i];
 
+	/*
+	 * We can safely provide the (value-count - 1) or
+	 * the max value in 0-index based as the index
+	 * because when the size is 0, memmove() will move 0
+	 * bytes and that means memmove() will not move
+	 * any data.
+	 *
+	 * Reference:
+	 * https://stackoverflow.com/a/3751937
+	 */
 	memmove(
 		value->cell + i,
 		value->cell + (i + 1),
