@@ -68,7 +68,7 @@ struct lval *lval_eval(struct lval *value)
 
 struct lval *lval_eval_sexpr(struct lval *value)
 {
-	int i;
+	unsigned int i;
 
 	/*
 	 * Prevent integer overflow when we got too many
@@ -201,7 +201,7 @@ struct lval *builtin(struct lval *value, char *sym)
 
 struct lval *builtin_op(struct lval *value, char *op)
 {
-	int i;
+	unsigned int i;
 
 	for (i = 0; i < value->count; i++) {
 		struct lval *cell = value->cell[i];
@@ -432,7 +432,7 @@ struct lval *builtin_eval(struct lval *value)
 
 struct lval *builtin_join(struct lval *value)
 {
-	int i;
+	unsigned int i;
 
 	for (i = 0; i < value->count; i++) {
 		if (value->cell[i]->type != LVAL_QEXPR) {
@@ -582,7 +582,7 @@ struct lval *lval_take(struct lval *value, int i)
  */
 struct lval *lval_pop(
 	struct lval *value,
-	int i,
+	unsigned int i,
 	const char *filename,
 	unsigned int line_number
 )
@@ -652,7 +652,7 @@ static void lval_expr_print(
 	char close
 )
 {
-	int i;
+	unsigned int i;
 
 	if (v->count == 0) {
 		printf("()");
@@ -734,7 +734,7 @@ struct lval *lval_add(struct lval *v1, struct lval *v2)
 
 void lval_del(struct lval *value)
 {
-	int i;
+	unsigned int i;
 
 	switch (value->type) {
 		case LVAL_NUM:

@@ -36,6 +36,9 @@ enum lval_err {
  * To reproduce the double overflow, we can do:
  * DBL_MAX + 1E+292
  *
+ * We use unsigned int for count because count expected
+ * not to have negative value.
+ *
  * Reference:
  * https://stackoverflow.com/a/37830627
  */
@@ -44,7 +47,7 @@ struct lval {
 	double num;
 	char *err;
 	char *sym;
-	int count;
+	unsigned int count;
 	struct lval **cell;
 };
 
@@ -63,9 +66,14 @@ struct lval *builtin_len(struct lval *value);
 
 struct lval *lval_join(struct lval *v1, struct lval *v2);
 struct lval *lval_take(struct lval *value, int i);
+
+/*
+ * We are using unsigned int for i because in this case,
+ * index should not be negative value.
+ */
 struct lval *lval_pop(
 	struct lval *value,
-	int i,
+	unsigned int i,
 	const char *filename,
 	unsigned int line_number
 );
