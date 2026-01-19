@@ -23,6 +23,10 @@ int minus(int a, int b);
 typedef int (*ptr_td)(int, int);
 ptr_td select_op_td(int op);
 
+struct some_struct {
+	int (*func)(int, int);
+};
+
 int main(void)
 {
 	int (*fptr)(int, int);
@@ -56,6 +60,9 @@ int main(void)
 	 */
 	ptr_td fptr_op_td = select_op_td(2);
 	printf("fptr_op_td: %d\n", fptr_op_td(2, 1));
+
+	struct some_struct var = {.func = add};
+	printf("var: %d\n", var.func(2, 1));
 
 	return 0;
 }
