@@ -83,16 +83,16 @@ void lval_println(struct lval *value);
 struct lval *lval_add(struct lval *v1, struct lval *v2);
 void lval_del(struct lval *value);
 
-struct lval *lval_num(double num);
-struct lval *lval_sym(char *sym);
-struct lval *lval_sexpr(void);
-struct lval *lval_qexpr(void);
-
 struct lval *lval_err(
 	const char *mes,
 	const char *filename,
 	unsigned int line_number
 );
+
+struct lval *lval_num(double num);
+struct lval *lval_sym(char *sym);
+struct lval *lval_sexpr(void);
+struct lval *lval_qexpr(void);
 
 int stringcmp(const char *str1, const char *str2);
 
