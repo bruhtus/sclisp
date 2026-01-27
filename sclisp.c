@@ -32,7 +32,7 @@ int main(void)
 	mpca_lang(
 		MPCA_LANG_DEFAULT,
 		"number: /-?\\d+(\\.\\d+)?/;"
-		"symbol: \"head\" | \"tail\" | \"list\" | \"eval\" | \"join\" | \"len\" | '+' | '-' | '*' | '/' | '%' | '^';"
+		"symbol: /[a-zA-Z0-9_+\\-*\\/^%\\\\=<>!&]+/;"
 		"sexpr: '(' <expr>* ')';"
 		"qexpr: '{' <expr>* '}';"
 		"expr: <number> | <symbol> | <sexpr> | <qexpr>;"
@@ -40,11 +40,14 @@ int main(void)
 		parsers_len, init_parsers
 	);
 
-	puts("Sclisp v0.0.1-rc2");
+	puts("Sclisp v0.0.1-rc3");
 	puts("Press ctrl-c, ctrl-d, exit command to exit\n");
 
 	const char *prompt;
 	char *input;
+
+	struct lenv *env = lenv_init();
+	lenv_builtins_init(env);
 
 	while (1) {
 		prompt = "sclisp> ";
@@ -70,6 +73,7 @@ int main(void)
 			mpc_ast_t *ast = result.output;
 
 			struct lval *eval = lval_eval(
+				env,
 				lval_read(ast)
 			);
 

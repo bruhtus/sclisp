@@ -48,6 +48,16 @@
 #define REALLOC_ERR_MSG "realloc failed"
 
 /*
+ * This is specific to gcc compiler. If we use another
+ * compiler, we might need to change this.
+ *
+ * References:
+ * - https://stackoverflow.com/a/12891181
+ * - https://gcc.gnu.org/onlinedocs/gcc-15.2.0/gcc/Common-Function-Attributes.html
+ */
+#define UNUSED(name) UNUSED_##name __attribute__((unused))
+
+/*
  * Static variable or function must be
  * resolved at compile-time, so we can't use
  * another variable or return value of another
@@ -66,15 +76,27 @@ static void lval_expr_print(
 );
 static void lval_print(struct lval *value);
 
-struct lval *lval_eval(struct lval *value)
+struct lval *lval_eval(
+	struct lenv *env,
+	struct lval *value
+)
 {
+	if (value->type == LVAL_SYM) {
+		struct lval *var = lenv_get(env, value);
+		lval_del(value);
+		return var;
+	}
+
 	if (value->type == LVAL_SEXPR)
-		return lval_eval_sexpr(value);
+		return lval_eval_sexpr(env, value);
 
 	return value;
 }
 
-struct lval *lval_eval_sexpr(struct lval *value)
+struct lval *lval_eval_sexpr(
+	struct lenv *env,
+	struct lval *value
+)
 {
 	unsigned int i;
 
@@ -111,7 +133,10 @@ struct lval *lval_eval_sexpr(struct lval *value)
 		return value;
 
 	for (i = 0; i < value->count; i++) {
-		value->cell[i] = lval_eval(value->cell[i]);
+		value->cell[i] = lval_eval(
+			env,
+			value->cell[i]
+		);
 
 		if (value->cell[i]->type == LVAL_ERR)
 			return lval_take(value, i);
@@ -130,84 +155,109 @@ struct lval *lval_eval_sexpr(struct lval *value)
 	if (first->type == LVAL_ERR)
 		return first;
 
-	if (first->type != LVAL_SYM) {
+	if (first->type != LVAL_FUNC) {
 		lval_del(first);
 		lval_del(value);
 		return lval_err(
-			"s-expression does not start with symbol",
+			"first element is not a function",
 			__FILE__,
 			__LINE__
 		);
 	}
 
-	struct lval *result = builtin(value, first->sym);
+	struct lval *result = first->func(env, value);
 
 	lval_del(first);
 	return result;
 }
 
-struct lval *builtin(struct lval *value, char *sym)
+struct lval *lval_copy(struct lval *value)
 {
-	if (stringcmp("head", sym) == 0)
-		return builtin_head(value);
+	unsigned int i;
 
-	if (stringcmp("tail", sym) == 0)
-		return builtin_tail(value);
+	struct lval *copy = malloc(sizeof(*copy));
+	copy->count = 0;
+	copy->type = value->type;
 
-	if (stringcmp("list", sym) == 0)
-		return builtin_list(value);
+	switch (copy->type) {
+		case LVAL_QEXPR_LEN:
+			break;
 
-	if (stringcmp("len", sym) == 0)
-		return builtin_len(value);
+		case LVAL_FUNC:
+			copy->func = value->func;
+			break;
 
-	/*
-	 * Example:
-	 * eval (tail {tail head (list 69 42 69420)})
-	 *
-	 * The example above process is like this:
-	 * - Evaluate the first `tail` keyword, which result in
-	 *   `head (list 69 42 69420)`.
-	 * - And then evaluate `head` keyword with argument
-	 *   `(list 69 42 69420)`.
-	 * - Finally, we evaluate the `list` keyword with
-	 *   argument `69 42 69420`.
-	 */
-	if (stringcmp("eval", sym) == 0)
-		return builtin_eval(value);
+		case LVAL_NUM:
+			copy->num = value->num;
+			break;
 
-	/*
-	 * Example:
-	 * join {69} {69420 69} (eval {head (list 42 69420)})
-	 *
-	 * The example above process is like this:
-	 * - We create new quoted expression, and put that
-	 *   in some variable, let's say `joined` variable.
-	 * - Add the element in {69} into `joined` quoted
-	 *   expression.
-	 * - And then, add all elements from {69420 69} into
-	 *   `joined` quoted expression.
-	 * - After that, we evaluate symbolic expression
-	 *   (eval {head (list 42 69420)}), which result
-	 *   in number 42 and put that in `joined` quoted
-	 *   expression.
-	 * - Finally, we got new `joined` quoted expression
-	 *   with elements {69 69420 69 42}.
-	 */
-	if (stringcmp("join", sym) == 0)
-		return builtin_join(value);
+		case LVAL_ERR:
+			/*
+			 * TODO:
+			 * Handle integer overflow from the
+			 * addition operation.
+			 */
+			copy->err = malloc(
+				strlen(value->err) + 1
+			);
 
-	if (strstr("+*-/%^", sym))
-		return builtin_op(value, sym);
+			if (copy->err == NULL)
+				alloc_err(
+					MALLOC_ERR_MSG,
+					__FILE__,
+					__LINE__
+				);
 
-	lval_del(value);
-	return lval_err(
-		"unknown symbol",
-		__FILE__,
-		__LINE__
-	);
+			/*
+			 * Using strcpy() should be fine
+			 * because we already knew that
+			 * the size from the destination and
+			 * the source is the same.
+			 */
+			strcpy(copy->err, value->err);
+			break;
+
+		/*
+		 * We can copy the symbol value directly
+		 * as long as the ast have not been deleted,
+		 * usually using mpc_ast_delete() in the
+		 * main().
+		 */
+		case LVAL_SYM:
+			copy->sym = value->sym;
+			break;
+
+		case LVAL_SEXPR:
+		case LVAL_QEXPR:
+			copy->count = value->count;
+
+			copy->cell = alloc_util(
+				NULL,
+				copy->count,
+				sizeof(*copy->cell),
+				__FILE__,
+				__LINE__
+			);
+
+			if (copy->cell == NULL)
+				alloc_err(
+					REALLOC_ERR_MSG,
+					__FILE__,
+					__LINE__
+				);
+
+			for (i = 0; i < copy->count; i++)
+				copy->cell[i] = lval_copy(
+					value->cell[i]
+				);
+
+			break;
+	}
+
+	return copy;
 }
 
-struct lval *builtin_op(struct lval *value, char *op)
+struct lval *builtin_arith(struct lval *value, char op)
 {
 	unsigned int i;
 
@@ -234,7 +284,7 @@ struct lval *builtin_op(struct lval *value, char *op)
 	if (first->type == LVAL_ERR)
 		return first;
 
-	if ((*op == '-') && value->count == 0)
+	if ((op == '-') && value->count == 0)
 		first->num = -first->num;
 
 	while (value->count > 0) {
@@ -250,16 +300,16 @@ struct lval *builtin_op(struct lval *value, char *op)
 			return next;
 		}
 
-		if (*op == '+')
+		if (op == '+')
 			first->num += next->num;
 
-		if (*op == '-')
+		if (op == '-')
 			first->num -= next->num;
 
-		if (*op == '*')
+		if (op == '*')
 			first->num *= next->num;
 
-		if (*op == '/') {
+		if (op == '/') {
 			if (next->num == 0) {
 				lval_del(first);
 				lval_del(next);
@@ -275,7 +325,7 @@ struct lval *builtin_op(struct lval *value, char *op)
 			first->num /= next->num;
 		}
 
-		if (*op == '%') {
+		if (op == '%') {
 			double modulo = fmod(first->num, next->num);
 
 			if (isnan(modulo)) {
@@ -290,7 +340,7 @@ struct lval *builtin_op(struct lval *value, char *op)
 			first->num = modulo;
 		}
 
-		if (*op == '^') {
+		if (op == '^') {
 			double power = pow(first->num, next->num);
 
 			if (isnan(power)) {
@@ -312,7 +362,27 @@ struct lval *builtin_op(struct lval *value, char *op)
 	return first;
 }
 
-struct lval *builtin_head(struct lval *value)
+struct lval *lval_func(lbuiltin_td func)
+{
+	struct lval *value = malloc(sizeof(*value));
+
+	if (value == NULL)
+		alloc_err(
+			MALLOC_ERR_MSG,
+			__FILE__,
+			__LINE__
+		);
+
+	value->type = LVAL_FUNC;
+	value->func = func;
+
+	return value;
+}
+
+struct lval *builtin_head(
+	struct lenv *UNUSED(env),
+	struct lval *value
+)
 {
 	if (value->count != 1) {
 		lval_del(value);
@@ -360,7 +430,10 @@ struct lval *builtin_head(struct lval *value)
 	return head;
 }
 
-struct lval *builtin_tail(struct lval *value)
+struct lval *builtin_tail(
+	struct lenv *UNUSED(env),
+	struct lval *value
+)
 {
 	if (value->count != 1) {
 		lval_del(value);
@@ -406,13 +479,31 @@ struct lval *builtin_tail(struct lval *value)
 	return tail;
 }
 
-struct lval *builtin_list(struct lval *value)
+struct lval *builtin_list(
+	struct lenv *UNUSED(env),
+	struct lval *value
+)
 {
 	value->type = LVAL_QEXPR;
 	return value;
 }
 
-struct lval *builtin_eval(struct lval *value)
+/*
+ * Example:
+ * eval (tail {tail head (list 69 42 69420)})
+ *
+ * The example above process is like this:
+ * - Evaluate the first `tail` keyword, which result in
+ *   `head (list 69 42 69420)`.
+ * - And then evaluate `head` keyword with argument
+ *   `(list 69 42 69420)`.
+ * - Finally, we evaluate the `list` keyword with
+ *   argument `69 42 69420`.
+ */
+struct lval *builtin_eval(
+	struct lenv *env,
+	struct lval *value
+)
 {
 	if (value->count != 1) {
 		lval_del(value);
@@ -435,10 +526,31 @@ struct lval *builtin_eval(struct lval *value)
 	struct lval *first = lval_take(value, 0);
 	first->type = LVAL_SEXPR;
 
-	return lval_eval(first);
+	return lval_eval(env, first);
 }
 
-struct lval *builtin_join(struct lval *value)
+/*
+ * Example:
+ * join {69} {69420 69} (eval {head (list 42 69420)})
+ *
+ * The example above process is like this:
+ * - We create new quoted expression, and put that
+ *   in some variable, let's say `joined` variable.
+ * - Add the element in {69} into `joined` quoted
+ *   expression.
+ * - And then, add all elements from {69420 69} into
+ *   `joined` quoted expression.
+ * - After that, we evaluate symbolic expression
+ *   (eval {head (list 42 69420)}), which result
+ *   in number 42 and put that in `joined` quoted
+ *   expression.
+ * - Finally, we got new `joined` quoted expression
+ *   with elements {69 69420 69 42}.
+ */
+struct lval *builtin_join(
+	struct lenv *UNUSED(env),
+	struct lval *value
+)
 {
 	unsigned int i;
 
@@ -504,7 +616,10 @@ struct lval *builtin_join(struct lval *value)
  * Reference:
  * https://jtra.cz/stuff/lisp/sclr/length.html
  */
-struct lval *builtin_len(struct lval *value)
+struct lval *builtin_len(
+	struct lenv *UNUSED(env),
+	struct lval *value
+)
 {
 	if (value->count != 1) {
 		lval_del(value);
@@ -532,6 +647,54 @@ struct lval *builtin_len(struct lval *value)
 		value->count = value->cell[0]->count;
 
 	return value;
+}
+
+struct lval *builtin_add(
+	struct lenv *UNUSED(env),
+	struct lval *value
+)
+{
+	return builtin_arith(value, '+');
+}
+
+struct lval *builtin_sub(
+	struct lenv *UNUSED(env),
+	struct lval *value
+)
+{
+	return builtin_arith(value, '-');
+}
+
+struct lval *builtin_mul(
+	struct lenv *UNUSED(env),
+	struct lval *value
+)
+{
+	return builtin_arith(value, '*');
+}
+
+struct lval *builtin_div(
+	struct lenv *UNUSED(env),
+	struct lval *value
+)
+{
+	return builtin_arith(value, '/');
+}
+
+struct lval *builtin_mod(
+	struct lenv *UNUSED(env),
+	struct lval *value
+)
+{
+	return builtin_arith(value, '%');
+}
+
+struct lval *builtin_pow(
+	struct lenv *UNUSED(env),
+	struct lval *value
+)
+{
+	return builtin_arith(value, '^');
 }
 
 struct lval *lval_join(struct lval *v1, struct lval *v2)
@@ -694,6 +857,10 @@ static void lval_print(struct lval *value)
 			printf("%s", value->sym);
 			break;
 
+		case LVAL_FUNC:
+			printf("<function>");
+			break;
+
 		case LVAL_SEXPR:
 		case LVAL_QEXPR:
 			lval_expr_print(value, '(', ')');
@@ -747,6 +914,7 @@ void lval_del(struct lval *value)
 	switch (value->type) {
 		case LVAL_NUM:
 		case LVAL_SYM:
+		case LVAL_FUNC:
 			break;
 
 		case LVAL_ERR:
@@ -998,6 +1166,212 @@ struct lval *lval_qexpr(void)
 	value->cell = NULL;
 
 	return value;
+}
+
+struct lenv *lenv_init(void)
+{
+	struct lenv *env = malloc(sizeof(*env));
+
+	if (env == NULL)
+		alloc_err(
+			MALLOC_ERR_MSG,
+			__FILE__,
+			__LINE__
+		);
+
+	env->count = 0;
+	env->syms = NULL;
+	env->vals = NULL;
+
+	return env;
+}
+
+void lenv_del(struct lenv *env)
+{
+	unsigned int i;
+
+	for (i = 0; i < env->count; i++) {
+		free(env->syms[i]);
+		lval_del(env->vals[i]);
+	}
+
+	free(env->syms);
+	free(env->vals);
+	free(env);
+}
+
+void lenv_add_builtin(
+	struct lenv *env,
+	char *name,
+	lbuiltin_td func
+)
+{
+	struct lval *builtin_func = lval_func(func);
+
+	lenv_put(env, name, builtin_func);
+	lval_del(builtin_func);
+}
+
+void lenv_builtins_init(struct lenv *env)
+{
+	unsigned int i;
+
+	const char *func_names[] = {
+		"head",
+		"tail",
+		"list",
+		"eval",
+		"join",
+		"len",
+		"+",
+		"-",
+		"*",
+		"/",
+		"%",
+		"^"
+	};
+
+	lbuiltin_td func_pointers[] = {
+		builtin_head,
+		builtin_tail,
+		builtin_list,
+		builtin_eval,
+		builtin_join,
+		builtin_len,
+		builtin_add,
+		builtin_sub,
+		builtin_mul,
+		builtin_div,
+		builtin_mod,
+		builtin_pow,
+	};
+
+	unsigned int func_names_len = sizeof(func_names) / sizeof(func_names[0]);
+	unsigned int func_pointers_len = sizeof(func_pointers) / sizeof(func_pointers[0]);
+
+	if (func_names_len != func_pointers_len) {
+		printf(
+			"function names and function pointers length did not match"
+		);
+		exit(1);
+	}
+
+	/*
+	 * We cast func_names to (char *) because we have
+	 * lenv_put() which has parameter type char * for the
+	 * symbol or variable we are trying to put into the
+	 * environment, which might not be a constant value.
+	 */
+	for (i = 0; i < func_names_len; i++)
+		lenv_add_builtin(
+			env,
+			(char *)func_names[i],
+			func_pointers[i]
+		);
+}
+
+struct lval *lenv_get(
+	struct lenv *env,
+	struct lval *value
+)
+{
+	unsigned int i;
+
+	for (i = 0; i < env->count; i++) {
+		if (stringcmp(env->syms[i], value->sym) == 0)
+			return lval_copy(env->vals[i]);
+	}
+
+	return lval_err(
+		"symbol does not exist",
+		__FILE__,
+		__LINE__
+	);
+}
+
+void lenv_put(
+	struct lenv *env,
+	char *sym,
+	struct lval *func
+)
+{
+	unsigned int i;
+
+	/*
+	 * Because we have different type for the memory
+	 * allocation, so using (void **) type and then cast
+	 * them to the right type in the assignment. This so
+	 * that we can reuse the same variable.
+	 */
+	void **new_alloc;
+
+	for (i = 0; i < env->count; i++) {
+		if (stringcmp(env->syms[i], sym) == 0) {
+			lval_del(env->vals[i]);
+			env->vals[i] = lval_copy(func);
+			return;
+		}
+	}
+
+	/*
+	 * This is to make sure that the count represent
+	 * the total symbols we have.
+	 */
+	env->count++;
+
+	new_alloc = alloc_util(
+		env->vals,
+		env->count,
+		sizeof(*env->vals),
+		__FILE__,
+		__LINE__
+	);
+
+	if (
+		new_alloc == NULL &&
+		(sizeof(*env->vals) * env->count) > 0
+	)
+		alloc_err(
+			REALLOC_ERR_MSG,
+			__FILE__,
+			__LINE__
+		);
+
+	env->vals = (struct lval **)new_alloc;
+
+	new_alloc = alloc_util(
+		env->syms,
+		env->count,
+		sizeof(*env->syms),
+		__FILE__,
+		__LINE__
+	);
+
+	if (
+		new_alloc == NULL &&
+		(sizeof(*env->syms) * env->count) > 0
+	)
+		alloc_err(
+			REALLOC_ERR_MSG,
+			__FILE__,
+			__LINE__
+		);
+
+	env->syms = (char **)new_alloc;
+	new_alloc = NULL;
+
+	env->vals[env->count - 1] = lval_copy(func);
+
+	/*
+	 * TODO:
+	 * Handle integer overflow from the
+	 * addition operation.
+	 */
+	env->syms[env->count - 1] = malloc(
+		strlen(sym) + 1
+	);
+
+	strcpy(env->syms[env->count - 1], sym);
 }
 
 /*

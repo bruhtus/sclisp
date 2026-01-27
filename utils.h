@@ -17,7 +17,8 @@ enum lval_type {
 	LVAL_SYM = 2,
 	LVAL_SEXPR = 3,
 	LVAL_QEXPR = 4,
-	LVAL_QEXPR_LEN = 5
+	LVAL_QEXPR_LEN = 5,
+	LVAL_FUNC = 6
 };
 
 enum lval_err {
@@ -27,6 +28,14 @@ enum lval_err {
 	LERR_MODULO_NAN = 3,
 	LERR_POW_NAN = 4
 };
+
+struct lval;
+struct lenv;
+
+typedef struct lval *(*lbuiltin_td)(
+	struct lenv *,
+	struct lval *
+);
 
 /*
  * Lisp value.
@@ -44,25 +53,101 @@ enum lval_err {
  */
 struct lval {
 	enum lval_type type;
+
 	double num;
 	char *err;
 	char *sym;
+
 	unsigned int count;
 	struct lval **cell;
+
+	lbuiltin_td func;
 };
 
-struct lval *lval_eval(struct lval *value);
-struct lval *lval_eval_sexpr(struct lval *value);
+struct lenv {
+	unsigned int count;
+	char **syms;
+	struct lval **vals;
+};
 
-struct lval *builtin(struct lval *value, char *sym);
-struct lval *builtin_op(struct lval *value, char *op);
+struct lval *lval_eval(
+	struct lenv *env,
+	struct lval *value
+);
 
-struct lval *builtin_head(struct lval *value);
-struct lval *builtin_tail(struct lval *value);
-struct lval *builtin_list(struct lval *value);
-struct lval *builtin_eval(struct lval *value);
-struct lval *builtin_join(struct lval *value);
-struct lval *builtin_len(struct lval *value);
+struct lval *lval_eval_sexpr(
+	struct lenv *env,
+	struct lval *value
+);
+
+struct lval *lval_copy(struct lval *value);
+
+struct lval *builtin_arith(
+	struct lval *value,
+	char op
+);
+
+struct lval *lval_func(lbuiltin_td func);
+
+struct lval *builtin_head(
+	struct lenv *env,
+	struct lval *value
+);
+
+struct lval *builtin_tail(
+	struct lenv *env,
+	struct lval *value
+);
+
+struct lval *builtin_list(
+	struct lenv *env,
+	struct lval *value
+);
+
+struct lval *builtin_eval(
+	struct lenv *env,
+	struct lval *value
+);
+
+struct lval *builtin_join(
+	struct lenv *env,
+	struct lval *value
+);
+
+struct lval *builtin_len(
+	struct lenv *env,
+	struct lval *value
+);
+
+struct lval *builtin_add(
+	struct lenv *env,
+	struct lval *value
+);
+
+struct lval *builtin_sub(
+	struct lenv *env,
+	struct lval *value
+);
+
+struct lval *builtin_mul(
+	struct lenv *env,
+	struct lval *value
+);
+
+struct lval *builtin_div(
+	struct lenv *env,
+	struct lval *value
+);
+
+struct lval *builtin_mod(
+	struct lenv *env,
+	struct lval *value
+);
+
+struct lval *builtin_pow(
+	struct lenv *env,
+	struct lval *value
+);
 
 struct lval *lval_join(struct lval *v1, struct lval *v2);
 struct lval *lval_take(struct lval *value, int i);
@@ -93,6 +178,28 @@ struct lval *lval_num(double num);
 struct lval *lval_sym(char *sym);
 struct lval *lval_sexpr(void);
 struct lval *lval_qexpr(void);
+
+struct lenv *lenv_init(void);
+void lenv_del(struct lenv *env);
+
+void lenv_add_builtin(
+	struct lenv *env,
+	char *name,
+	lbuiltin_td func
+);
+
+void lenv_builtins_init(struct lenv *env);
+
+struct lval *lenv_get(
+	struct lenv *env,
+	struct lval *value
+);
+
+void lenv_put(
+	struct lenv *env,
+	char *sym,
+	struct lval *func
+);
 
 int stringcmp(const char *str1, const char *str2);
 
