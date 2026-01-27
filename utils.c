@@ -1,3 +1,11 @@
+/*
+ * Reference:
+ * https://gcc.gnu.org/onlinedocs/cpp/Common-Predefined-Macros.html
+ */
+#ifndef __GNUC__
+#error "Need gcc to compile"
+#endif
+
 #include "utils.h"
 
 #include <limits.h>
