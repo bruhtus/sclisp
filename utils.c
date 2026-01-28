@@ -173,7 +173,8 @@ struct lval *lval_eval_sexpr(
 
 struct lval *lval_copy(struct lval *value)
 {
-	unsigned int i;
+	unsigned int i, overflow_indicator;
+	size_t alloc_size;
 
 	struct lval *copy = malloc(sizeof(*copy));
 	copy->count = 0;
@@ -192,14 +193,16 @@ struct lval *lval_copy(struct lval *value)
 			break;
 
 		case LVAL_ERR:
-			/*
-			 * TODO:
-			 * Handle integer overflow from the
-			 * addition operation.
-			 */
-			copy->err = malloc(
-				strlen(value->err) + 1
+			overflow_indicator = __builtin_add_overflow(
+				strlen(value->err),
+				1,
+				&alloc_size
 			);
+
+			if (overflow_indicator)
+				int_overflow_err(__FILE__, __LINE__);
+
+			copy->err = malloc(alloc_size);
 
 			if (copy->err == NULL)
 				alloc_err(
@@ -949,6 +952,14 @@ struct lval *lval_err(
 	unsigned int limit;
 	const char *fmt;
 
+	/*
+	 * We expected to use gcc as the compiler and gcc has
+	 * __builtin_uadd_overflow(), so if you use another
+	 * compiler, make sure that the compiler has
+	 * __builtin_uadd_overflow().
+	 */
+	unsigned int len_mes, overflow_indicator;
+
 	struct lval *value = malloc(sizeof(*value));
 
 	if (value == NULL)
@@ -959,14 +970,6 @@ struct lval *lval_err(
 		);
 
 	value->type = LVAL_ERR;
-
-	/*
-	 * We expected to use gcc as the compiler and gcc has
-	 * __builtin_uadd_overflow(), so if you use another
-	 * compiler, make sure that the compiler has
-	 * __builtin_uadd_overflow().
-	 */
-	unsigned int len_mes, overflow_indicator;
 
 	overflow_indicator = __builtin_uadd_overflow(
 		strlen(mes),
@@ -1295,7 +1298,8 @@ void lenv_put(
 	struct lval *func
 )
 {
-	unsigned int i;
+	unsigned int i, overflow_indicator;
+	size_t alloc_size;
 
 	/*
 	 * Because we have different type for the memory
@@ -1362,14 +1366,16 @@ void lenv_put(
 
 	env->vals[env->count - 1] = lval_copy(func);
 
-	/*
-	 * TODO:
-	 * Handle integer overflow from the
-	 * addition operation.
-	 */
-	env->syms[env->count - 1] = malloc(
-		strlen(sym) + 1
+	overflow_indicator = __builtin_add_overflow(
+		strlen(sym),
+		1,
+		&alloc_size
 	);
+
+	if (overflow_indicator)
+		int_overflow_err(__FILE__, __LINE__);
+
+	env->syms[env->count - 1] = malloc(alloc_size);
 
 	if (env->syms[env->count - 1] == NULL)
 		alloc_err(
