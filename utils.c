@@ -1371,6 +1371,13 @@ void lenv_put(
 		strlen(sym) + 1
 	);
 
+	if (env->syms[env->count - 1] == NULL)
+		alloc_err(
+			MALLOC_ERR_MSG,
+			__FILE__,
+			__LINE__
+		);
+
 	strcpy(env->syms[env->count - 1], sym);
 }
 
