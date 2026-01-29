@@ -90,6 +90,8 @@ int main(void)
 		free(input);
 	}
 
+	lenv_del(env);
+
 	mpc_cleanup(parsers_len, init_parsers);
 	return 0;
 }
