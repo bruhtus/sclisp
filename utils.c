@@ -382,6 +382,75 @@ struct lval *lval_func(lbuiltin_td func)
 	return value;
 }
 
+struct lval *builtin_def(
+	struct lenv *env,
+	struct lval *value
+)
+{
+	unsigned int i;
+	struct lval *syms = value->cell[0];
+
+	if (syms->type != LVAL_QEXPR) {
+		lval_del(value);
+		return lval_err(
+			"builtin_def() passed incorrect type",
+			__FILE__,
+			__LINE__
+		);
+	}
+
+	if (syms->count == 0) {
+		lval_del(value);
+		return lval_err(
+			"builtin_def() passed empty list",
+			__FILE__,
+			__LINE__
+		);
+	}
+
+	if (syms->count != (value->count - 1)) {
+		lval_del(value);
+		return lval_err(
+			"builtin_def() having unequal symbols and values",
+			__FILE__,
+			__LINE__
+		);
+	}
+
+	for (i = 0; i < syms->count; i++) {
+		if (syms->cell[i]->type != LVAL_SYM) {
+			lval_del(value);
+			return lval_err(
+				"builtin_def() cannot define non-symbol",
+				__FILE__,
+				__LINE__
+			);
+		}
+
+		/*
+		 * TODO:
+		 * There's a problem with this expression:
+		 * def {arglist} {x y z}
+		 *
+		 * The problem might be related to when
+		 * we are copying to those x, y, z symbols
+		 * to the environment but those symbols
+		 * already deleted when we call
+		 * mpc_ast_delete().
+		 *
+		 * So check lval_copy() first.
+		 */
+		lenv_put(
+			env,
+			syms->cell[i]->sym,
+			value->cell[i+1]
+		);
+	}
+
+	lval_del(value);
+	return lval_sexpr();
+}
+
 struct lval *builtin_head(
 	struct lenv *UNUSED(env),
 	struct lval *value
@@ -1220,6 +1289,7 @@ void lenv_builtins_init(struct lenv *env)
 	unsigned int i;
 
 	const char *func_names[] = {
+		"def",
 		"head",
 		"tail",
 		"list",
@@ -1235,6 +1305,7 @@ void lenv_builtins_init(struct lenv *env)
 	};
 
 	lbuiltin_td func_pointers[] = {
+		builtin_def,
 		builtin_head,
 		builtin_tail,
 		builtin_list,

@@ -89,6 +89,11 @@ struct lval *builtin_arith(
 
 struct lval *lval_func(lbuiltin_td func);
 
+struct lval *builtin_def(
+	struct lenv *env,
+	struct lval *value
+);
+
 struct lval *builtin_head(
 	struct lenv *env,
 	struct lval *value
