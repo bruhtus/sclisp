@@ -82,9 +82,9 @@ struct lval *lval_eval(
 )
 {
 	if (value->type == LVAL_SYM) {
-		struct lval *var = lenv_get(env, value);
+		struct lval *sym = lenv_get(env, value);
 		lval_del(value);
-		return var;
+		return sym;
 	}
 
 	if (value->type == LVAL_SEXPR)
@@ -200,7 +200,10 @@ struct lval *lval_copy(struct lval *value)
 			);
 
 			if (overflow_indicator)
-				int_overflow_err(__FILE__, __LINE__);
+				int_overflow_err(
+					__FILE__,
+					__LINE__
+				);
 
 			copy->err = malloc(alloc_size);
 
@@ -221,13 +224,42 @@ struct lval *lval_copy(struct lval *value)
 			break;
 
 		/*
-		 * We can copy the symbol value directly
-		 * as long as the ast have not been deleted,
-		 * usually using mpc_ast_delete() in the
-		 * main().
+		 * Create new memory allocation so that
+		 * the symbols still exist when we save the
+		 * symbols in environment as values like this:
+		 * def {args} {x y z}
+		 *
+		 * The problem is that, those symbols is
+		 * created by mpc parser and when we call
+		 * mpc_ast_delete(), those symbols become
+		 * dangling pointer and if we saved that
+		 * symbols in the environment, we won't be
+		 * able to access those symbols after it
+		 * become dangling pointer.
 		 */
 		case LVAL_SYM:
-			copy->sym = value->sym;
+			overflow_indicator = __builtin_add_overflow(
+				strlen(value->sym),
+				1,
+				&alloc_size
+			);
+
+			if (overflow_indicator)
+				int_overflow_err(
+					__FILE__,
+					__LINE__
+				);
+
+			copy->sym = malloc(alloc_size);
+
+			if (copy->sym == NULL)
+				alloc_err(
+					MALLOC_ERR_MSG,
+					__FILE__,
+					__LINE__
+				);
+
+			strcpy(copy->sym, value->sym);
 			break;
 
 		case LVAL_SEXPR:
@@ -427,19 +459,6 @@ struct lval *builtin_def(
 			);
 		}
 
-		/*
-		 * TODO:
-		 * There's a problem with this expression:
-		 * def {arglist} {x y z}
-		 *
-		 * The problem might be related to when
-		 * we are copying to those x, y, z symbols
-		 * to the environment but those symbols
-		 * already deleted when we call
-		 * mpc_ast_delete().
-		 *
-		 * So check lval_copy() first.
-		 */
 		lenv_put(
 			env,
 			syms->cell[i]->sym,
