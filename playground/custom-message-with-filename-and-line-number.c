@@ -24,8 +24,13 @@ char *msg_malloc(
 	unsigned line_number
 )
 {
+	/*
+	 * We already considered null terminator (\0)
+	 * character in len_msg, that's why len_filename
+	 * only having strlen().
+	 */
 	unsigned len_msg = strlen(msg) + 1;
-	unsigned len_filename = strlen(filename) + 1;
+	unsigned len_filename = strlen(filename);
 	unsigned len_line_number = floor(log10(line_number)) + 1;
 
 	unsigned limit;
@@ -37,7 +42,7 @@ char *msg_malloc(
  */
 #ifdef DEBUG
 	/*
-	 * msg (playground/snprintf-with-malloc.c:69)\0\n
+	 * msg (playground/custom-message-with-filename-and-line-number.c:69)\0\n
 	 */
 	limit = len_msg + 2 + len_filename + 1 + len_line_number + 2;
 	fmt = "%s (%s:%u)\n";
@@ -53,6 +58,10 @@ char *msg_malloc(
 
 	char *str = malloc(limit);
 
+	/*
+	 * Looks like snprintf() did not add the new line
+	 * character into the calculation result (?).
+	 */
 	int size_snprintf = snprintf(
 		str,
 		limit,
