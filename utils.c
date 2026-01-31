@@ -175,6 +175,7 @@ struct lval *lval_copy(struct lval *value)
 {
 	unsigned int i, overflow_indicator;
 	size_t alloc_size;
+	char *msg;
 
 	struct lval *copy = malloc(sizeof(*copy));
 	copy->count = 0;
@@ -193,8 +194,10 @@ struct lval *lval_copy(struct lval *value)
 			break;
 
 		case LVAL_ERR:
+			msg = value->err;
+
 			overflow_indicator = __builtin_add_overflow(
-				strlen(value->err),
+				strlen(msg),
 				1,
 				&alloc_size
 			);
@@ -220,7 +223,7 @@ struct lval *lval_copy(struct lval *value)
 			 * the size from the destination and
 			 * the source is the same.
 			 */
-			strcpy(copy->err, value->err);
+			strcpy(copy->err, msg);
 			break;
 
 		/*
@@ -238,8 +241,10 @@ struct lval *lval_copy(struct lval *value)
 		 * become dangling pointer.
 		 */
 		case LVAL_SYM:
+			msg = value->sym;
+
 			overflow_indicator = __builtin_add_overflow(
-				strlen(value->sym),
+				strlen(msg),
 				1,
 				&alloc_size
 			);
@@ -259,7 +264,7 @@ struct lval *lval_copy(struct lval *value)
 					__LINE__
 				);
 
-			strcpy(copy->sym, value->sym);
+			strcpy(copy->sym, msg);
 			break;
 
 		case LVAL_SEXPR:
