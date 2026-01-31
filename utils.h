@@ -87,8 +87,6 @@ struct lval *builtin_arith(
 	char op
 );
 
-struct lval *lval_func(lbuiltin_td func);
-
 struct lval *builtin_def(
 	struct lenv *env,
 	struct lval *value
@@ -178,6 +176,8 @@ struct lval *lval_err(
 	const char *filename,
 	unsigned int line_number
 );
+
+struct lval *lval_func(lbuiltin_td func);
 
 struct lval *lval_num(double num);
 struct lval *lval_sym(char *sym);

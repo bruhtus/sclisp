@@ -402,23 +402,6 @@ struct lval *builtin_arith(struct lval *value, char op)
 	return first;
 }
 
-struct lval *lval_func(lbuiltin_td func)
-{
-	struct lval *value = malloc(sizeof(*value));
-
-	if (value == NULL)
-		alloc_err(
-			MALLOC_ERR_MSG,
-			__FILE__,
-			__LINE__
-		);
-
-	value->type = LVAL_FUNC;
-	value->func = func;
-
-	return value;
-}
-
 struct lval *builtin_def(
 	struct lenv *env,
 	struct lval *value
@@ -1179,6 +1162,23 @@ struct lval *lval_err(
 		filename,
 		line_number
 	);
+
+	return value;
+}
+
+struct lval *lval_func(lbuiltin_td func)
+{
+	struct lval *value = malloc(sizeof(*value));
+
+	if (value == NULL)
+		alloc_err(
+			MALLOC_ERR_MSG,
+			__FILE__,
+			__LINE__
+		);
+
+	value->type = LVAL_FUNC;
+	value->func = func;
 
 	return value;
 }
