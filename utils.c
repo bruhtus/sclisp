@@ -57,6 +57,8 @@
  */
 #define UNUSED(name) UNUSED_##name __attribute__((unused))
 
+#define FUNC_BUILTIN(func) {func, #func}
+
 /*
  * Static variable or function must be
  * resolved at compile-time, so we can't use
@@ -187,6 +189,7 @@ struct lval *lval_copy(struct lval *value)
 
 		case LVAL_FUNC:
 			copy->func = value->func;
+			copy->func_name = value->func_name;
 			break;
 
 		case LVAL_NUM:
@@ -937,7 +940,7 @@ static void lval_print(struct lval *value)
 			break;
 
 		case LVAL_FUNC:
-			printf("<function>");
+			printf("<%s>", value->func_name);
 			break;
 
 		case LVAL_SEXPR:
@@ -1166,7 +1169,10 @@ struct lval *lval_err(
 	return value;
 }
 
-struct lval *lval_func(lbuiltin_td func)
+struct lval *lval_func(
+	lbuiltin_td func,
+	const char *func_name
+)
 {
 	struct lval *value = malloc(sizeof(*value));
 
@@ -1179,6 +1185,7 @@ struct lval *lval_func(lbuiltin_td func)
 
 	value->type = LVAL_FUNC;
 	value->func = func;
+	value->func_name = func_name;
 
 	return value;
 }
@@ -1299,10 +1306,14 @@ void lenv_del(struct lenv *env)
 void lenv_add_builtin(
 	struct lenv *env,
 	char *name,
-	lbuiltin_td func
+	lbuiltin_td func,
+	const char *func_name
 )
 {
-	struct lval *builtin_func = lval_func(func);
+	struct lval *builtin_func = lval_func(
+		func,
+		func_name
+	);
 
 	lenv_put(env, name, builtin_func);
 	lval_del(builtin_func);
@@ -1328,20 +1339,24 @@ void lenv_builtins_init(struct lenv *env)
 		"^"
 	};
 
-	lbuiltin_td func_pointers[] = {
-		builtin_def,
-		builtin_head,
-		builtin_tail,
-		builtin_list,
-		builtin_eval,
-		builtin_join,
-		builtin_len,
-		builtin_add,
-		builtin_sub,
-		builtin_mul,
-		builtin_div,
-		builtin_mod,
-		builtin_pow,
+	/*
+	 * Reference:
+	 * https://stackoverflow.com/a/40706869
+	 */
+	struct fbuiltin func_pointers[] = {
+		FUNC_BUILTIN(builtin_def),
+		FUNC_BUILTIN(builtin_head),
+		FUNC_BUILTIN(builtin_tail),
+		FUNC_BUILTIN(builtin_list),
+		FUNC_BUILTIN(builtin_eval),
+		FUNC_BUILTIN(builtin_join),
+		FUNC_BUILTIN(builtin_len),
+		FUNC_BUILTIN(builtin_add),
+		FUNC_BUILTIN(builtin_sub),
+		FUNC_BUILTIN(builtin_mul),
+		FUNC_BUILTIN(builtin_div),
+		FUNC_BUILTIN(builtin_mod),
+		FUNC_BUILTIN(builtin_pow),
 	};
 
 	unsigned int func_names_len = sizeof(func_names) / sizeof(func_names[0]);
@@ -1364,7 +1379,8 @@ void lenv_builtins_init(struct lenv *env)
 		lenv_add_builtin(
 			env,
 			(char *)func_names[i],
-			func_pointers[i]
+			func_pointers[i].func,
+			func_pointers[i].name
 		);
 }
 

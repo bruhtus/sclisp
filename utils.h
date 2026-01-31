@@ -62,12 +62,18 @@ struct lval {
 	struct lval **cell;
 
 	lbuiltin_td func;
+	const char *func_name;
 };
 
 struct lenv {
 	unsigned int count;
 	char **syms;
 	struct lval **vals;
+};
+
+struct fbuiltin {
+	lbuiltin_td func;
+	const char *name;
 };
 
 struct lval *lval_eval(
@@ -177,7 +183,10 @@ struct lval *lval_err(
 	unsigned int line_number
 );
 
-struct lval *lval_func(lbuiltin_td func);
+struct lval *lval_func(
+	lbuiltin_td func,
+	const char *func_name
+);
 
 struct lval *lval_num(double num);
 struct lval *lval_sym(char *sym);
@@ -190,7 +199,8 @@ void lenv_del(struct lenv *env);
 void lenv_add_builtin(
 	struct lenv *env,
 	char *name,
-	lbuiltin_td func
+	lbuiltin_td func,
+	const char *func_name
 );
 
 void lenv_builtins_init(struct lenv *env);
