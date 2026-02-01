@@ -61,8 +61,8 @@ struct lval {
 	unsigned int count;
 	struct lval **cell;
 
-	lbuiltin_td func;
-	const char *func_name;
+	lbuiltin_td builtin;
+	const char *builtin_name;
 };
 
 struct lenv {
@@ -183,7 +183,7 @@ struct lval *lval_err(
 	unsigned int line_number
 );
 
-struct lval *lval_func(
+struct lval *lval_builtin(
 	lbuiltin_td func,
 	const char *func_name
 );

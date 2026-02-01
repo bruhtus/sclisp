@@ -175,7 +175,7 @@ struct lval *lval_eval_sexpr(
 		);
 	}
 
-	struct lval *result = first->func(env, value);
+	struct lval *result = first->builtin(env, value);
 
 	lval_del(first);
 	return result;
@@ -196,8 +196,8 @@ struct lval *lval_copy(struct lval *value)
 			break;
 
 		case LVAL_FUNC:
-			copy->func = value->func;
-			copy->func_name = value->func_name;
+			copy->builtin = value->builtin;
+			copy->builtin_name = value->builtin_name;
 			break;
 
 		case LVAL_NUM:
@@ -948,7 +948,7 @@ static void lval_print(struct lval *value)
 			break;
 
 		case LVAL_FUNC:
-			printf("<%s>", value->func_name);
+			printf("<%s>", value->builtin_name);
 			break;
 
 		case LVAL_SEXPR:
@@ -1177,9 +1177,9 @@ struct lval *lval_err(
 	return value;
 }
 
-struct lval *lval_func(
-	lbuiltin_td func,
-	const char *func_name
+struct lval *lval_builtin(
+	lbuiltin_td builtin,
+	const char *builtin_name
 )
 {
 	struct lval *value = malloc(sizeof(*value));
@@ -1192,8 +1192,8 @@ struct lval *lval_func(
 		);
 
 	value->type = LVAL_FUNC;
-	value->func = func;
-	value->func_name = func_name;
+	value->builtin = builtin;
+	value->builtin_name = builtin_name;
 
 	return value;
 }
@@ -1314,13 +1314,13 @@ void lenv_del(struct lenv *env)
 void lenv_add_builtin(
 	struct lenv *env,
 	char *name,
-	lbuiltin_td func,
-	const char *func_name
+	lbuiltin_td builtin,
+	const char *builtin_name
 )
 {
-	struct lval *builtin_func = lval_func(
-		func,
-		func_name
+	struct lval *builtin_func = lval_builtin(
+		builtin,
+		builtin_name
 	);
 
 	lenv_put(env, name, builtin_func);
@@ -1414,7 +1414,7 @@ struct lval *lenv_get(
 void lenv_put(
 	struct lenv *env,
 	char *sym,
-	struct lval *func
+	struct lval *builtin
 )
 {
 	unsigned int i, overflow_indicator;
@@ -1431,7 +1431,7 @@ void lenv_put(
 	for (i = 0; i < env->count; i++) {
 		if (stringcmp(env->syms[i], sym) == 0) {
 			lval_del(env->vals[i]);
-			env->vals[i] = lval_copy(func);
+			env->vals[i] = lval_copy(builtin);
 			return;
 		}
 	}
@@ -1483,7 +1483,7 @@ void lenv_put(
 	env->syms = (char **)new_alloc;
 	new_alloc = NULL;
 
-	env->vals[env->count - 1] = lval_copy(func);
+	env->vals[env->count - 1] = lval_copy(builtin);
 
 	overflow_indicator = __builtin_add_overflow(
 		strlen(sym),
