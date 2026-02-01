@@ -1372,7 +1372,7 @@ void lenv_builtins_init(struct lenv *env)
 
 	if (func_names_len != func_pointers_len) {
 		printf(
-			"function names and function pointers length did not match"
+			"Error: function names and function pointers length did not match\n"
 		);
 		exit(1);
 	}
