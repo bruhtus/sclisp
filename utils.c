@@ -57,6 +57,14 @@
  */
 #define UNUSED(name) UNUSED_##name __attribute__((unused))
 
+/*
+ * Symbol # in macro means that the arguments will be
+ * converted to string literal. So #func will be converted
+ * to "func".
+ *
+ * Reference:
+ * https://gcc.gnu.org/onlinedocs/cpp/Stringizing.html
+ */
 #define FUNC_BUILTIN(func) {func, #func}
 
 /*
