@@ -477,7 +477,7 @@ struct lval *builtin_head(
 	if (value->count != 1) {
 		lval_del(value);
 		return lval_err(
-			"builtin_head() passed too many arguments",
+			"builtin_head() need 1 argument",
 			__FILE__,
 			__LINE__
 		);
@@ -528,7 +528,7 @@ struct lval *builtin_tail(
 	if (value->count != 1) {
 		lval_del(value);
 		return lval_err(
-			"builtin_tail() passed too many arguments",
+			"builtin_tail() need 1 argument",
 			__FILE__,
 			__LINE__
 		);
@@ -598,7 +598,7 @@ struct lval *builtin_eval(
 	if (value->count != 1) {
 		lval_del(value);
 		return lval_err(
-			"builtin_eval() passed too many arguments",
+			"builtin_eval() need 1 argument",
 			__FILE__,
 			__LINE__
 		);
@@ -714,7 +714,7 @@ struct lval *builtin_len(
 	if (value->count != 1) {
 		lval_del(value);
 		return lval_err(
-			"builtin_len() passed too many arguments",
+			"builtin_len() need 1 argument",
 			__FILE__,
 			__LINE__
 		);
