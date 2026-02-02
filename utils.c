@@ -1414,7 +1414,7 @@ struct lval *lenv_get(
 void lenv_put(
 	struct lenv *env,
 	char *sym,
-	struct lval *builtin
+	struct lval *value
 )
 {
 	unsigned int i, overflow_indicator;
@@ -1431,7 +1431,7 @@ void lenv_put(
 	for (i = 0; i < env->count; i++) {
 		if (stringcmp(env->syms[i], sym) == 0) {
 			lval_del(env->vals[i]);
-			env->vals[i] = lval_copy(builtin);
+			env->vals[i] = lval_copy(value);
 			return;
 		}
 	}
@@ -1483,7 +1483,7 @@ void lenv_put(
 	env->syms = (char **)new_alloc;
 	new_alloc = NULL;
 
-	env->vals[env->count - 1] = lval_copy(builtin);
+	env->vals[env->count - 1] = lval_copy(value);
 
 	overflow_indicator = __builtin_add_overflow(
 		strlen(sym),
