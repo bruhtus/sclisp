@@ -1331,7 +1331,13 @@ void lenv_builtins_init(struct lenv *env)
 {
 	unsigned int i;
 
-	const char *func_names[] = {
+	/*
+	 * Don't really want the func_names to change
+	 * later on, like doing `func_names[0] = "ls"`.
+	 * Hence why using `*const` to make sure the
+	 * pointer value did not changed later on.
+	 */
+	const char *const func_names[] = {
 		"def",
 		"head",
 		"tail",
@@ -1351,7 +1357,7 @@ void lenv_builtins_init(struct lenv *env)
 	 * Reference:
 	 * https://stackoverflow.com/a/40706869
 	 */
-	struct fbuiltin func_pointers[] = {
+	const struct fbuiltin func_pointers[] = {
 		FUNC_BUILTIN(builtin_def),
 		FUNC_BUILTIN(builtin_head),
 		FUNC_BUILTIN(builtin_tail),
