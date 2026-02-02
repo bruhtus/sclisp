@@ -93,7 +93,7 @@ struct lval *builtin_arith(
 	char op
 );
 
-struct lval *builtin_def(
+struct lval *builtin_let(
 	struct lenv *env,
 	struct lval *value
 );

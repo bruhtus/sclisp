@@ -413,7 +413,7 @@ struct lval *builtin_arith(struct lval *value, char op)
 	return first;
 }
 
-struct lval *builtin_def(
+struct lval *builtin_let(
 	struct lenv *env,
 	struct lval *value
 )
@@ -424,7 +424,7 @@ struct lval *builtin_def(
 	if (syms->type != LVAL_QEXPR) {
 		lval_del(value);
 		return lval_err(
-			"builtin_def() passed non q-expr type",
+			"builtin_let() passed non q-expr type",
 			__FILE__,
 			__LINE__
 		);
@@ -433,7 +433,7 @@ struct lval *builtin_def(
 	if (syms->count == 0) {
 		lval_del(value);
 		return lval_err(
-			"builtin_def() passed empty list",
+			"builtin_let() passed empty list",
 			__FILE__,
 			__LINE__
 		);
@@ -442,7 +442,7 @@ struct lval *builtin_def(
 	if (syms->count != (value->count - 1)) {
 		lval_del(value);
 		return lval_err(
-			"builtin_def() having unequal symbols and values",
+			"builtin_let() having unequal symbols and values",
 			__FILE__,
 			__LINE__
 		);
@@ -452,7 +452,7 @@ struct lval *builtin_def(
 		if (syms->cell[i]->type != LVAL_SYM) {
 			lval_del(value);
 			return lval_err(
-				"builtin_def() cannot define non-symbol",
+				"builtin_let() cannot define non-symbol",
 				__FILE__,
 				__LINE__
 			);
@@ -1338,7 +1338,7 @@ void lenv_builtins_init(struct lenv *env)
 	 * pointer value did not changed later on.
 	 */
 	const char *const func_names[] = {
-		"def",
+		"let",
 		"head",
 		"tail",
 		"list",
@@ -1358,7 +1358,7 @@ void lenv_builtins_init(struct lenv *env)
 	 * https://stackoverflow.com/a/40706869
 	 */
 	const struct fbuiltin func_pointers[] = {
-		FUNC_BUILTIN(builtin_def),
+		FUNC_BUILTIN(builtin_let),
 		FUNC_BUILTIN(builtin_head),
 		FUNC_BUILTIN(builtin_tail),
 		FUNC_BUILTIN(builtin_list),
