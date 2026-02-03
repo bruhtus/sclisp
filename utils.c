@@ -427,7 +427,7 @@ struct lval *builtin_let(
 	if (syms->type != LVAL_QEXPR) {
 		lval_del(value);
 		return lval_err(
-			"builtin_let() passed non q-expr type",
+			"builtin_let() passed non-quote expression",
 			__FILE__,
 			__LINE__
 		);
@@ -489,7 +489,7 @@ struct lval *builtin_head(
 	if (value->cell[0]->type != LVAL_QEXPR) {
 		lval_del(value);
 		return lval_err(
-			"builtin_head() passed non q-expr type",
+			"builtin_head() passed non-quote expression",
 			__FILE__,
 			__LINE__
 		);
@@ -540,7 +540,7 @@ struct lval *builtin_tail(
 	if (value->cell[0]->type != LVAL_QEXPR) {
 		lval_del(value);
 		return lval_err(
-			"builtin_tail() passed non q-expr type",
+			"builtin_tail() passed non-quote expression",
 			__FILE__,
 			__LINE__
 		);
@@ -610,7 +610,7 @@ struct lval *builtin_eval(
 	if (value->cell[0]->type != LVAL_QEXPR) {
 		lval_del(value);
 		return lval_err(
-			"builtin_eval() passed non q-expr type",
+			"builtin_eval() passed non-quote expression",
 			__FILE__,
 			__LINE__
 		);
@@ -651,7 +651,7 @@ struct lval *builtin_join(
 		if (value->cell[i]->type != LVAL_QEXPR) {
 			lval_del(value);
 			return lval_err(
-				"builtin_join() passed non q-expr type",
+				"builtin_join() passed non-quote expression",
 				__FILE__,
 				__LINE__
 			);
@@ -726,7 +726,7 @@ struct lval *builtin_len(
 	if (value->cell[0]->type != LVAL_QEXPR) {
 		lval_del(value);
 		return lval_err(
-			"builtin_len() passed non q-expr type",
+			"builtin_len() passed non-quote expression",
 			__FILE__,
 			__LINE__
 		);
