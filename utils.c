@@ -8,6 +8,7 @@
 
 #include "utils.h"
 
+#include <assert.h>
 #include <limits.h>
 #include <math.h>
 #include <stdint.h>
@@ -66,6 +67,8 @@
  * https://gcc.gnu.org/onlinedocs/cpp/Stringizing.html
  */
 #define FUNC_BUILTIN(func) {func, #func}
+
+#define ARRAY_LEN(array) (sizeof(array) / sizeof(array[0]))
 
 /*
  * Static variable or function must be
@@ -1373,15 +1376,14 @@ void lenv_builtins_init(struct lenv *env)
 		FUNC_BUILTIN(builtin_pow),
 	};
 
-	unsigned int func_names_len = sizeof(func_names) / sizeof(func_names[0]);
-	unsigned int func_pointers_len = sizeof(func_pointers) / sizeof(func_pointers[0]);
-
-	if (func_names_len != func_pointers_len) {
-		printf(
-			"Error: function names and function pointers length did not match\n"
-		);
-		exit(1);
-	}
+	/*
+	 * Reference:
+	 * https://en.cppreference.com/w/c/language/_Static_assert.html
+	 */
+	static_assert(
+		ARRAY_LEN(func_names) == ARRAY_LEN(func_pointers),
+		"Error: function names and function pointers length did not match"
+	);
 
 	/*
 	 * We cast func_names to (char *) because we have
@@ -1389,7 +1391,7 @@ void lenv_builtins_init(struct lenv *env)
 	 * symbol or variable we are trying to put into the
 	 * environment, which might not be a constant value.
 	 */
-	for (i = 0; i < func_names_len; i++)
+	for (i = 0; i < ARRAY_LEN(func_names); i++)
 		lenv_add_builtin(
 			env,
 			(char *)func_names[i],
