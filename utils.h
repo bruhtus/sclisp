@@ -213,7 +213,7 @@ struct lval *lenv_get(
 void lenv_put(
 	struct lenv *env,
 	char *sym,
-	struct lval *func
+	struct lval *value
 );
 
 int stringcmp(const char *str1, const char *str2);
