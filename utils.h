@@ -70,6 +70,7 @@ struct lval {
 };
 
 struct lenv {
+	struct lenv *global_env;
 	unsigned int count;
 	char **syms;
 	struct lval **vals;
@@ -185,6 +186,12 @@ void lval_println(struct lval *value);
 
 struct lval *lval_add(struct lval *v1, struct lval *v2);
 void lval_del(struct lval *value);
+
+struct lval *lval_call(
+	struct lenv *env,
+	struct lval *func,
+	struct lval *value
+);
 
 struct lval *lval_err(
 	const char *mes,
