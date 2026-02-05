@@ -1721,7 +1721,7 @@ struct lenv *lenv_copy(struct lenv *env)
  */
 int stringcmp(const char *str1, const char *str2)
 {
-	while (*str1 && *str1 == *str2) {
+	while (*str1 && (*str1 == *str2)) {
 		str1++;
 		str2++;
 	}
