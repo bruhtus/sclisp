@@ -928,7 +928,7 @@ struct lval *lval_pop(
 	if (value->count <= i) {
 		lval_del(value);
 		return lval_err(
-			"lval_pop index out of bounds",
+			"lval_pop() index out of bounds",
 			filename,
 			line_number
 		);
