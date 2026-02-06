@@ -63,10 +63,6 @@ struct lval {
 
 	lbuiltin_td builtin;
 	const char *builtin_name;
-
-	struct lenv *lambda_env;
-	struct lval *lambda_params;
-	struct lval *lambda_body;
 };
 
 struct lenv {
@@ -98,11 +94,6 @@ struct lval *builtin_arith(
 );
 
 struct lval *builtin_let(
-	struct lenv *env,
-	struct lval *value
-);
-
-struct lval *builtin_lambda(
 	struct lenv *env,
 	struct lval *value
 );
@@ -197,11 +188,6 @@ struct lval *lval_builtin(
 	const char *func_name
 );
 
-struct lval *lval_lambda(
-	struct lval *params,
-	struct lval *body
-);
-
 struct lval *lval_num(double num);
 struct lval *lval_sym(char *sym);
 struct lval *lval_sexpr(void);
@@ -229,8 +215,6 @@ void lenv_put(
 	char *sym,
 	struct lval *value
 );
-
-struct lenv *lenv_copy(struct lenv *env);
 
 int stringcmp(const char *str1, const char *str2);
 

@@ -200,22 +200,7 @@ struct lval *lval_copy(struct lval *value)
 
 		case LVAL_FUNC:
 			copy->builtin = value->builtin;
-
-			if (copy->builtin != NULL) {
-				copy->builtin_name = value->builtin_name;
-			} else {
-				copy->lambda_env = lenv_copy(
-					value->lambda_env
-				);
-
-				copy->lambda_params = lval_copy(
-					value->lambda_params
-				);
-
-				copy->lambda_body = lval_copy(
-					value->lambda_body
-				);
-			}
+			copy->builtin_name = value->builtin_name;
 			break;
 
 		case LVAL_NUM:
@@ -259,7 +244,7 @@ struct lval *lval_copy(struct lval *value)
 		 * Create new memory allocation so that
 		 * the symbols still exist when we save the
 		 * symbols in environment as values like this:
-		 * let {args} {x y z}
+		 * def {args} {x y z}
 		 *
 		 * The problem is that, those symbols is
 		 * created by mpc parser and when we call
@@ -485,65 +470,6 @@ struct lval *builtin_let(
 
 	lval_del(value);
 	return lval_sexpr();
-}
-
-struct lval *builtin_lambda(
-	struct lenv *UNUSED(env),
-	struct lval *value
-)
-{
-	unsigned int i;
-
-	if (value->count != 2) {
-		lval_del(value);
-		return lval_err(
-			"builtin_lambda() need 2 arguments",
-			__FILE__,
-			__LINE__
-		);
-	}
-
-	for (i = 0; i < value->count; i++) {
-		if (value->cell[i]->type != LVAL_QEXPR) {
-			lval_del(value);
-			return lval_err(
-				"builtin_lambda() passed non-quote expression",
-				__FILE__,
-				__LINE__
-			);
-		}
-	}
-
-	struct lval *first = value->cell[0];
-
-	for (i = 0; i < first->count; i++) {
-		if (first->cell[i]->type != LVAL_SYM) {
-			lval_del(value);
-			return lval_err(
-				"builtin_lambda() params is not a symbol",
-				__FILE__,
-				__LINE__
-			);
-		}
-	}
-
-	struct lval *params = lval_pop(
-		value,
-		0,
-		__FILE__,
-		__LINE__
-	);
-
-	struct lval *body = lval_pop(
-		value,
-		0,
-		__FILE__,
-		__LINE__
-	);
-
-	lval_del(value);
-
-	return lval_lambda(params, body);
 }
 
 struct lval *builtin_head(
@@ -1025,15 +951,7 @@ static void lval_print(struct lval *value)
 			break;
 
 		case LVAL_FUNC:
-			if (value->builtin != NULL) {
-				printf("<%s>", value->builtin_name);
-			} else {
-				printf("(lambda ");
-				lval_print(value->lambda_params);
-				putchar(' ');
-				lval_print(value->lambda_body);
-				putchar(')');
-			}
+			printf("<%s>", value->builtin_name);
 			break;
 
 		case LVAL_SEXPR:
@@ -1089,14 +1007,7 @@ void lval_del(struct lval *value)
 	switch (value->type) {
 		case LVAL_NUM:
 		case LVAL_SYM:
-			break;
-
 		case LVAL_FUNC:
-			if (value->builtin == NULL) {
-				lenv_del(value->lambda_env);
-				lval_del(value->lambda_params);
-				lval_del(value->lambda_body);
-			}
 			break;
 
 		case LVAL_ERR:
@@ -1290,31 +1201,6 @@ struct lval *lval_builtin(
 	return value;
 }
 
-struct lval *lval_lambda(
-	struct lval *params,
-	struct lval *body
-)
-{
-	struct lval *value = malloc(sizeof(*value));
-
-	if (value == NULL)
-		alloc_err(
-			MALLOC_ERR_MSG,
-			__FILE__,
-			__LINE__
-		);
-
-	value->lambda_env = lenv_init();
-
-	value->type = LVAL_FUNC;
-	value->builtin = NULL;
-	value->builtin_name = NULL;
-	value->lambda_params = params;
-	value->lambda_body = body;
-
-	return value;
-}
-
 struct lval *lval_num(double num)
 {
 	struct lval *value = malloc(sizeof(*value));
@@ -1456,7 +1342,6 @@ void lenv_builtins_init(struct lenv *env)
 	 */
 	const char *const func_names[] = {
 		"let",
-		"lambda",
 		"head",
 		"tail",
 		"list",
@@ -1477,7 +1362,6 @@ void lenv_builtins_init(struct lenv *env)
 	 */
 	const struct fbuiltin func_pointers[] = {
 		FUNC_BUILTIN(builtin_let),
-		FUNC_BUILTIN(builtin_lambda),
 		FUNC_BUILTIN(builtin_head),
 		FUNC_BUILTIN(builtin_tail),
 		FUNC_BUILTIN(builtin_list),
@@ -1547,8 +1431,8 @@ void lenv_put(
 	/*
 	 * Because we have different type for the memory
 	 * allocation, so using (void **) type and then cast
-	 * them to the right type in the assignment. This is
-	 * so that we can reuse the same variable.
+	 * them to the right type in the assignment. This so
+	 * that we can reuse the same variable.
 	 */
 	void **new_alloc;
 
@@ -1628,85 +1512,6 @@ void lenv_put(
 		);
 
 	strcpy(env->syms[env->count - 1], sym);
-}
-
-struct lenv *lenv_copy(struct lenv *env)
-{
-	unsigned int i, overflow_indicator;
-	size_t alloc_size;
-
-	struct lenv *copy = malloc(sizeof(*copy));
-
-	copy->count = env->count;
-
-	/*
-	 * Because we have different type for the memory
-	 * allocation, so using (void **) type and then cast
-	 * them to the right type in the assignment. This is
-	 * so that we can reuse the same variable.
-	 */
-	void **new_alloc;
-
-	new_alloc = alloc_util(
-		NULL,
-		copy->count,
-		sizeof(*env->syms),
-		__FILE__,
-		__LINE__
-	);
-
-	if (new_alloc == NULL)
-		alloc_err(
-			REALLOC_ERR_MSG,
-			__FILE__,
-			__LINE__
-		);
-
-	copy->syms = (char **)new_alloc;
-
-	new_alloc = alloc_util(
-		NULL,
-		copy->count,
-		sizeof(*env->vals),
-		__FILE__,
-		__LINE__
-	);
-
-	if (new_alloc == NULL)
-		alloc_err(
-			REALLOC_ERR_MSG,
-			__FILE__,
-			__LINE__
-		);
-
-	copy->vals = (struct lval **)new_alloc;
-	new_alloc = NULL;
-
-	for (i = 0; i < copy->count; i++) {
-		overflow_indicator = __builtin_add_overflow(
-			strlen(env->syms[i]),
-			1,
-			&alloc_size
-		);
-
-		if (overflow_indicator)
-			int_overflow_err(__FILE__, __LINE__);
-
-		copy->syms[i] = malloc(alloc_size);
-
-		if (copy->syms[i] == NULL)
-			alloc_err(
-				MALLOC_ERR_MSG,
-				__FILE__,
-				__LINE__
-			);
-
-		strcpy(copy->syms[i], env->syms[i]);
-
-		copy->vals[i] = lval_copy(env->vals[i]);
-	}
-
-	return copy;
 }
 
 /*
