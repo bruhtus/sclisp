@@ -178,7 +178,7 @@ struct lval *lval_eval_sexpr(
 		);
 	}
 
-	struct lval *result = lval_call(env, first, value);
+	struct lval *result = first->builtin(env, value);
 
 	lval_del(first);
 	return result;
@@ -1122,74 +1122,6 @@ void lval_del(struct lval *value)
 	free(value);
 }
 
-struct lval *lval_call(
-	struct lenv *env,
-	struct lval *func,
-	struct lval *value
-)
-{
-	unsigned int i;
-	unsigned int params_total = value->count;
-
-	if (func->builtin != NULL)
-		return func->builtin(env, value);
-
-	/*
-	 * Assign the value to the function parameters.
-	 */
-	for (i = 0; i < params_total; i++) {
-		if (func->lambda_params->count == 0) {
-			lval_del(value);
-			return lval_err(
-				"function passed too many arguments",
-				__FILE__,
-				__LINE__
-			);
-		}
-
-		struct lval *param = lval_pop(
-			func->lambda_params,
-			0,
-			__FILE__,
-			__LINE__
-		);
-
-		struct lval *argument = lval_pop(
-			value,
-			0,
-			__FILE__,
-			__LINE__
-		);
-
-		lenv_put(
-			func->lambda_env,
-			param->sym,
-			argument
-		);
-
-		lval_del(param);
-		lval_del(argument);
-	}
-
-	lval_del(value);
-
-	if (func->lambda_params->count == 0) {
-		func->lambda_env->global_env = env;
-
-		struct lval *body = lval_add(
-			lval_sexpr(),
-			lval_copy(func->lambda_body)
-		);
-
-		return builtin_eval(func->lambda_env, body);
-	} else {
-		/*
-		 * Return partially evaluated function.
-		 */
-		return lval_copy(func);
-	}
-}
-
 struct lval *lval_err(
 	const char *mes,
 	const char *filename,
@@ -1475,7 +1407,6 @@ struct lenv *lenv_init(void)
 			__LINE__
 		);
 
-	env->global_env = NULL;
 	env->count = 0;
 	env->syms = NULL;
 	env->vals = NULL;
@@ -1597,9 +1528,6 @@ struct lval *lenv_get(
 			return lval_copy(env->vals[i]);
 	}
 
-	if (env->global_env != NULL)
-		return lenv_get(env->global_env, value);
-
 	return lval_err(
 		"symbol does not exist",
 		__FILE__,
@@ -1709,7 +1637,6 @@ struct lenv *lenv_copy(struct lenv *env)
 
 	struct lenv *copy = malloc(sizeof(*copy));
 
-	copy->global_env = env->global_env;
 	copy->count = env->count;
 
 	/*
