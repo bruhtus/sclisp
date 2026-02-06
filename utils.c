@@ -193,6 +193,8 @@ struct lval *lval_copy(struct lval *value)
 	struct lval *copy = malloc(sizeof(*copy));
 	copy->count = 0;
 	copy->type = value->type;
+	copy->builtin = NULL;
+	copy->builtin_name = NULL;
 
 	switch (copy->type) {
 		case LVAL_QEXPR_LEN:
@@ -421,7 +423,7 @@ struct lval *builtin_let(
 	struct lval *value
 )
 {
-	unsigned int i;
+	unsigned int i, j;
 	struct lval *syms = value->cell[0];
 
 	if (syms->type != LVAL_QEXPR) {
@@ -452,6 +454,18 @@ struct lval *builtin_let(
 	}
 
 	for (i = 0; i < syms->count; i++) {
+		for (j = 0; j < env->count; j++) {
+			if (
+				(stringcmp(env->syms[j], syms->cell[i]->sym) == 0) &&
+				(env->vals[j]->builtin != NULL)
+			)
+				return lval_err(
+					"builtin_let() cannot replace builtin function",
+					__FILE__,
+					__LINE__
+				);
+		}
+
 		if (syms->cell[i]->type != LVAL_SYM) {
 			lval_del(value);
 			return lval_err(
