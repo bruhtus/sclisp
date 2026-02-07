@@ -32,6 +32,10 @@ int main(void)
 	 */
 	found = memccpy(buf, str, '\0', BUF_SIZE);
 	printf("found: %p\n", found);
+	printf(
+		"(buf + (BUF_SIZE - 1)): %p\n",
+		(buf + (BUF_SIZE - 1))
+	);
 	printf("buf: %s\n", buf);
 
 	found = memccpy(buf, str, '\0', BUF_SIZE - 2);
