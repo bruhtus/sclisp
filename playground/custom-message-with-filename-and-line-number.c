@@ -42,13 +42,13 @@ char *msg_malloc(
  */
 #ifdef DEBUG
 	/*
-	 * msg (playground/custom-message-with-filename-and-line-number.c:69)\0\n
+	 * msg (playground/custom-message-with-filename-and-line-number.c:69)\n\0
 	 */
 	limit = len_msg + 2 + len_filename + 1 + len_line_number + 2;
 	fmt = "%s (%s:%u)\n";
 #else
 	/*
-	 * msg\0\n
+	 * msg\n\0
 	 */
 	limit = len_msg + 1;
 	fmt = "%s\n";
@@ -61,6 +61,13 @@ char *msg_malloc(
 	/*
 	 * Looks like snprintf() did not add the new line
 	 * character into the calculation result (?).
+	 *
+	 * If the snprintf size is the same or more than
+	 * the limit, that means we might not have enough
+	 * space to add null terminator (\0).
+	 *
+	 * Reference:
+	 * https://stackoverflow.com/a/50498477
 	 */
 	int size_snprintf = snprintf(
 		str,
