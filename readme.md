@@ -99,6 +99,25 @@ This is the things that i remember doing differently. There might be other
 things that i forgot to mention, so if you want to find out more, you can
 check the source code.
 
+## Examples
+
+```sh
+sclisp> head {69 42 69420}
+sclisp> (head {69 42 69420})
+sclisp> (tail {69 42 69420})
+sclisp> (len {69 42 69420})
+sclisp> eval (tail {tail head (list 69 42 69420)})
+sclisp> join {69} {69420 69} (eval {head (list 42 69420)})
+sclisp> let {args} {x y}
+sclisp> let args 69 42
+sclisp> (+ x y)
+sclisp> % 69 0
+sclisp> / 69 0
+sclisp> ^ 2 3
+sclisp> * 2 3
+sclisp> - 2 3
+```
+
 ## Side Notes
 
 This project was mostly built on live stream at youtube. For the playlist, you
