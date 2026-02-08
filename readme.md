@@ -4,6 +4,11 @@ Sclisp is a toy project for learning C programming language. It's mostly based
 on the book [Build Your Own Lisp](https://www.buildyourownlisp.com/) and using
 [mpc parser](https://github.com/orangeduck/mpc) to parse the characters.
 
+Keep in mind that this project purpose is to learn C programming language
+rather than creating a full fledge lisp interpreter, so the features
+implemented in this project is only a small subset of what other lisp
+interpreter have.
+
 There's a few tweak that didn't exist in the book, like malloc() failure
 handler and using the archive library, see [Highlights](#highlights) for more
 tweaks info. There's also the `playground` directory which contains my
@@ -99,6 +104,13 @@ check the source code.
 This project was mostly built on live stream at youtube. For the playlist, you
 can check
 [here](https://www.youtube.com/playlist?list=PL0Uvin-so_c9eXp_ugGp6V5U-QpdZq0C7).
+
+This project stopped at Chapter 11 from the book "Build Your Own Lisp" mainly
+because i have some doubt about the next chapter. For example, in Chapter 12
+we try to implement a lambda function but the book's implementation can not
+handle a lambda function without a parameter. At the time of building this
+project, i have no experience in lisp so i am not sure if that is expected or
+not.
 
 ## References
 
