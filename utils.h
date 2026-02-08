@@ -218,6 +218,15 @@ void lenv_put(
 
 int stringcmp(const char *str1, const char *str2);
 
+void stringcpy(
+	char *dest,
+	size_t dest_len,
+	char *src,
+	size_t src_len,
+	const char *filename,
+	unsigned int line_number
+);
+
 void int_overflow_err(
 	const char *filename,
 	unsigned int line_number

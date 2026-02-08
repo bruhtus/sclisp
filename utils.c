@@ -234,12 +234,20 @@ struct lval *lval_copy(struct lval *value)
 				);
 
 			/*
-			 * Using strcpy() should be fine
-			 * because we already knew that
-			 * the size from the destination and
-			 * the source is the same.
+			 * We use alloc_size for both
+			 * destination and source length
+			 * because we know that
+			 * destination and source length
+			 * is the same.
 			 */
-			strcpy(copy->err, msg);
+			stringcpy(
+				copy->err,
+				alloc_size,
+				msg,
+				alloc_size,
+				__FILE__,
+				__LINE__
+			);
 			break;
 
 		/*
@@ -280,7 +288,14 @@ struct lval *lval_copy(struct lval *value)
 					__LINE__
 				);
 
-			strcpy(copy->sym, msg);
+			stringcpy(
+				copy->sym,
+				alloc_size,
+				msg,
+				alloc_size,
+				__FILE__,
+				__LINE__
+			);
 			break;
 
 		case LVAL_SEXPR:
@@ -1525,7 +1540,14 @@ void lenv_put(
 			__LINE__
 		);
 
-	strcpy(env->syms[env->count - 1], sym);
+	stringcpy(
+		env->syms[env->count - 1],
+		alloc_size,
+		sym,
+		alloc_size,
+		__FILE__,
+		__LINE__
+	);
 }
 
 /*
@@ -1547,6 +1569,70 @@ int stringcmp(const char *str1, const char *str2)
 
 	int result = (unsigned char)*str1 - (unsigned char)*str2;
 	return result;
+}
+
+/*
+ * Reserve exit code 5x, like 50, 51, and so on, for string
+ * related error code. Because 5 looks like S (the initial
+ * character for String).
+ *
+ * References:
+ * - https://stackoverflow.com/q/63256325
+ * - https://gottliebtfreitag.de/blog/2022/12/10/The-Incredible-speed-of-memchr.html
+ * - https://nullprogram.com/blog/2021/07/30/
+ * - https://developers.redhat.com/blog/2019/08/12/efficient-string-copying-and-concatenation-in-c#choosing_a_solution
+ * - https://daniel.haxx.se/blog/2025/12/29/no-strcpy-either/
+ * - https://aticleworld.com/memccpy-in-c/
+ * - https://stackoverflow.com/questions/37219492/is-it-safe-to-call-memcpy-with-count-greater-than-memory-allocated-for-src#comment61970063_37219541
+ * - https://sourceware.org/git/?p=glibc.git;a=blob;f=string/memccpy.c;h=9c521eb9a89da919a80ea103fdecdb9248e36244;hb=HEAD
+ */
+void stringcpy(
+	char *dest,
+	size_t dest_len,
+	char *src,
+	size_t src_len,
+	const char *filename,
+	unsigned int line_number
+)
+{
+	if (src == NULL || dest == NULL) {
+		printf(
+			"Error: dest or src can not be null (%s:%u).\n",
+			filename,
+			line_number
+		);
+
+		exit(50);
+	}
+
+	if (dest_len != src_len) {
+		printf(
+			"Error: dest and src length is not the same (%s:%u).\n",
+			filename,
+			line_number
+		);
+
+		exit(51);
+	}
+
+	void *terminator = memchr(src, '\0', dest_len);
+
+	if (terminator == NULL) {
+		printf(
+			"Error: null terminator not found on src (%s:%u).\n",
+			filename,
+			line_number
+		);
+
+		exit(52);
+	}
+
+	/*
+	 * We are using memmove() instead of memcpy() because
+	 * we can't be sure that someone providing overlap
+	 * memory area for dest and src.
+	 */
+	memmove(dest, src, dest_len);
 }
 
 /*
