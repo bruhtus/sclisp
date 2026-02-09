@@ -1573,7 +1573,7 @@ int stringcmp(const char *str1, const char *str2)
 
 /*
  * Reserve exit code 5x, like 50, 51, and so on, for string
- * related error code. Because 5 looks like S (the initial
+ * related error code. Because 5 looks like S (the first
  * character for String).
  *
  * References:
@@ -1597,7 +1597,7 @@ void stringcpy(
 {
 	if (src == NULL || dest == NULL) {
 		printf(
-			"Error: dest or src can not be null (%s:%u).\n",
+			"Error: dest or src can not be null (%s:%u)\n",
 			filename,
 			line_number
 		);
@@ -1607,7 +1607,7 @@ void stringcpy(
 
 	if (dest_len != src_len) {
 		printf(
-			"Error: dest and src length is not the same (%s:%u).\n",
+			"Error: dest and src length is not the same (%s:%u)\n",
 			filename,
 			line_number
 		);
@@ -1619,7 +1619,7 @@ void stringcpy(
 
 	if (terminator == NULL) {
 		printf(
-			"Error: null terminator not found on src (%s:%u).\n",
+			"Error: null terminator not found on src (%s:%u)\n",
 			filename,
 			line_number
 		);
