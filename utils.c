@@ -1197,7 +1197,7 @@ struct lval *lval_err(
 			__LINE__
 		);
 
-	snprintf(
+	int snp_out = snprintf(
 		value->err,
 		limit,
 		fmt,
@@ -1205,6 +1205,31 @@ struct lval *lval_err(
 		filename,
 		line_number
 	);
+
+	/*
+	 * If snprintf() return value equal or more than the
+	 * provided size, that means the output was truncated
+	 * and there's a possibility that the string is not
+	 * null terminated.
+	 *
+	 * If the return value is negative value, it means
+	 * there's an error.
+	 *
+	 * References:
+	 * - https://stackoverflow.com/a/50498477
+	 * - https://community.unix.com/t/does-snprintf-guarantee-null-termination/197168
+	 */
+	if (snp_out < 0) {
+		printf(
+			"Error: snprintf() throw an error (%s:%u)\n",
+			filename,
+			line_number
+		);
+
+		exit(52);
+	} else if ((unsigned int)snp_out >= limit) {
+		value->err[limit - 1] = '\0';
+	}
 
 	return value;
 }
