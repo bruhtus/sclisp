@@ -1576,6 +1576,9 @@ int stringcmp(const char *str1, const char *str2)
  * related error code. Because 5 looks like S (the first
  * character for String).
  *
+ * The length in here means the length of the string with
+ * null terminator.
+ *
  * References:
  * - https://stackoverflow.com/q/63256325
  * - https://gottliebtfreitag.de/blog/2022/12/10/The-Incredible-speed-of-memchr.html
