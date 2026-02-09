@@ -1618,24 +1618,25 @@ void stringcpy(
 		exit(51);
 	}
 
-	void *terminator = memchr(src, '\0', dest_len);
-
-	if (terminator == NULL) {
-		printf(
-			"Error: null terminator not found on src (%s:%u)\n",
-			filename,
-			line_number
-		);
-
-		exit(52);
-	}
-
 	/*
 	 * We are using memmove() instead of memcpy() because
 	 * we can't be sure that someone providing overlap
 	 * memory area for dest and src.
 	 */
 	memmove(dest, src, dest_len);
+
+	/*
+	 * Feels like we should do less disruption of program
+	 * execution, so let's try to always null-terminated
+	 * the last character of the string instead of
+	 * throwing error. Still not sure if this is good or
+	 * bad, we'll see.
+	 *
+	 * Reference:
+	 * https://github.com/lattera/freebsd/blob/master/sys/libkern/strlcpy.c
+	 */
+	if (dest[dest_len - 1] != '\0')
+		dest[dest_len - 1] = '\0';
 }
 
 /*
