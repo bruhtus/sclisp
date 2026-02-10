@@ -95,6 +95,11 @@ This is the highlight of what i did differently from the book:
    `mpc_cleanup()`, we don't need to update the arguments every time we add
    new parser as long as we use the same array as `mpca_lang()`.
 
+7. Trying to implement copy string functionality to replace `strcpy()`, called
+   `stringcpy()`.
+
+8. Handle the truncated value scenario of `snprintf()`.
+
 This is the things that i remember doing differently. There might be other
 things that i forgot to mention, so if you want to find out more, you can
 check the source code.
