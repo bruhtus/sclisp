@@ -180,3 +180,5 @@ video)](https://youtu.be/f_uWOWViYc0?t=413).
 Documentation](https://sourceware.org/gdb/current/onlinedocs/gdb.html/index.html).
 - [Big endian vs little endian
 format](https://open4tech.com/little-endian-vs-big-endian-in-embedded-systems/).
+- [GNU C library (glibc) source
+code](https://sourceware.org/git/?p=glibc.git;a=tree).
