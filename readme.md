@@ -184,3 +184,4 @@ format](https://open4tech.com/little-endian-vs-big-endian-in-embedded-systems/).
 code](https://sourceware.org/git/?p=glibc.git;a=tree).
 - [FreeBSD C library source
 code](https://github.com/freebsd/freebsd-src/tree/main/lib/libc).
+- [Musl C library source code](https://git.musl-libc.org/cgit/musl/tree/src).
