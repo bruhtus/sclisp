@@ -182,3 +182,5 @@ Documentation](https://sourceware.org/gdb/current/onlinedocs/gdb.html/index.html
 format](https://open4tech.com/little-endian-vs-big-endian-in-embedded-systems/).
 - [GNU C library (glibc) source
 code](https://sourceware.org/git/?p=glibc.git;a=tree).
+- [FreeBSD C library source
+code](https://github.com/freebsd/freebsd-src/tree/main/lib/libc).
