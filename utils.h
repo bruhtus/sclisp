@@ -21,14 +21,6 @@ enum lval_type {
 	LVAL_FUNC = 6
 };
 
-enum lval_err {
-	LERR_INVALID_SYM = 0,
-	LERR_INVALID_NUM = 1,
-	LERR_DIV_ZERO = 2,
-	LERR_MODULO_NAN = 3,
-	LERR_POW_NAN = 4
-};
-
 struct lval;
 struct lenv;
 
