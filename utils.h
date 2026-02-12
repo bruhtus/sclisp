@@ -21,6 +21,22 @@ enum ltype_e {
 	LVAL_FUNC = 6
 };
 
+/*
+ * We can use union to store different data type
+ * in the same memory location. We will use the
+ * largest data type size for the size of the
+ * union type.
+ *
+ * This means that we can only have
+ * _one value at a time_ in those memory
+ * location.
+ */
+union lcontent_u {
+	double num;
+	char *err;
+	char *sym;
+};
+
 struct lval;
 struct lenv;
 
@@ -46,9 +62,7 @@ typedef struct lval *(*lbuiltin_td)(
 struct lval {
 	enum ltype_e type;
 
-	double num;
-	char *err;
-	char *sym;
+	union lcontent_u content;
 
 	unsigned int count;
 	struct lval **cell;

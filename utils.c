@@ -206,11 +206,11 @@ struct lval *lval_copy(struct lval *value)
 			break;
 
 		case LVAL_NUM:
-			copy->num = value->num;
+			copy->content.num = value->content.num;
 			break;
 
 		case LVAL_ERR:
-			msg = value->err;
+			msg = value->content.err;
 
 			overflow_indicator = __builtin_add_overflow(
 				strlen(msg),
@@ -224,9 +224,9 @@ struct lval *lval_copy(struct lval *value)
 					__LINE__
 				);
 
-			copy->err = malloc(alloc_size);
+			copy->content.err = malloc(alloc_size);
 
-			if (copy->err == NULL)
+			if (copy->content.err == NULL)
 				alloc_err(
 					MALLOC_ERR_MSG,
 					__FILE__,
@@ -241,7 +241,7 @@ struct lval *lval_copy(struct lval *value)
 			 * is the same.
 			 */
 			stringcpy(
-				copy->err,
+				copy->content.err,
 				alloc_size,
 				msg,
 				alloc_size,
@@ -265,7 +265,7 @@ struct lval *lval_copy(struct lval *value)
 		 * become dangling pointer.
 		 */
 		case LVAL_SYM:
-			msg = value->sym;
+			msg = value->content.sym;
 
 			overflow_indicator = __builtin_add_overflow(
 				strlen(msg),
@@ -279,9 +279,9 @@ struct lval *lval_copy(struct lval *value)
 					__LINE__
 				);
 
-			copy->sym = malloc(alloc_size);
+			copy->content.sym = malloc(alloc_size);
 
-			if (copy->sym == NULL)
+			if (copy->content.sym == NULL)
 				alloc_err(
 					MALLOC_ERR_MSG,
 					__FILE__,
@@ -289,7 +289,7 @@ struct lval *lval_copy(struct lval *value)
 				);
 
 			stringcpy(
-				copy->sym,
+				copy->content.sym,
 				alloc_size,
 				msg,
 				alloc_size,
@@ -356,7 +356,7 @@ struct lval *builtin_arith(struct lval *value, char op)
 		return first;
 
 	if ((op == '-') && value->count == 0)
-		first->num = -first->num;
+		first->content.num = -first->content.num;
 
 	while (value->count > 0) {
 		struct lval *next = lval_pop(
@@ -372,16 +372,16 @@ struct lval *builtin_arith(struct lval *value, char op)
 		}
 
 		if (op == '+')
-			first->num += next->num;
+			first->content.num += next->content.num;
 
 		if (op == '-')
-			first->num -= next->num;
+			first->content.num -= next->content.num;
 
 		if (op == '*')
-			first->num *= next->num;
+			first->content.num *= next->content.num;
 
 		if (op == '/') {
-			if (next->num == 0) {
+			if (next->content.num == 0) {
 				lval_del(first);
 				lval_del(next);
 
@@ -393,11 +393,11 @@ struct lval *builtin_arith(struct lval *value, char op)
 				break;
 			}
 
-			first->num /= next->num;
+			first->content.num /= next->content.num;
 		}
 
 		if (op == '%') {
-			double modulo = fmod(first->num, next->num);
+			double modulo = fmod(first->content.num, next->content.num);
 
 			if (isnan(modulo)) {
 				first = lval_err(
@@ -408,11 +408,11 @@ struct lval *builtin_arith(struct lval *value, char op)
 				break;
 			}
 
-			first->num = modulo;
+			first->content.num = modulo;
 		}
 
 		if (op == '^') {
-			double power = pow(first->num, next->num);
+			double power = pow(first->content.num, next->content.num);
 
 			if (isnan(power)) {
 				first = lval_err(
@@ -423,7 +423,7 @@ struct lval *builtin_arith(struct lval *value, char op)
 				break;
 			}
 
-			first->num = power;
+			first->content.num = power;
 		}
 
 		lval_del(next);
@@ -471,7 +471,7 @@ struct lval *builtin_let(
 	for (i = 0; i < syms->count; i++) {
 		for (j = 0; j < env->count; j++) {
 			if (
-				(stringcmp(env->syms[j], syms->cell[i]->sym) == 0) &&
+				(stringcmp(env->syms[j], syms->cell[i]->content.sym) == 0) &&
 				(env->vals[j]->builtin != NULL)
 			)
 				return lval_err(
@@ -492,7 +492,7 @@ struct lval *builtin_let(
 
 		lenv_put(
 			env,
-			syms->cell[i]->sym,
+			syms->cell[i]->content.sym,
 			value->cell[i+1]
 		);
 	}
@@ -968,15 +968,15 @@ static void lval_print(struct lval *value)
 {
 	switch (value->type) {
 		case LVAL_NUM:
-			printf("%.3lf", value->num);
+			printf("%.3lf", value->content.num);
 			break;
 
 		case LVAL_ERR:
-			printf("Error: %s", value->err);
+			printf("Error: %s", value->content.err);
 			break;
 
 		case LVAL_SYM:
-			printf("%s", value->sym);
+			printf("%s", value->content.sym);
 			break;
 
 		case LVAL_FUNC:
@@ -1040,7 +1040,7 @@ void lval_del(struct lval *value)
 			break;
 
 		case LVAL_ERR:
-			free(value->err);
+			free(value->content.err);
 			break;
 
 		case LVAL_QEXPR_LEN:
@@ -1171,8 +1171,8 @@ struct lval *lval_err(
 	 * pointer__.
 	 *
 	 * With that in mind, we can safely change the
-	 * memory address stored in value->err with
-	 * string literal memory address.
+	 * memory address stored in value->content.err
+	 * with string literal memory address.
 	 *
 	 * malloc() and strcpy() needed if we get
 	 * the value during run-time and the memory
@@ -1188,9 +1188,9 @@ struct lval *lval_err(
 	 * - https://stackoverflow.com/a/55931977
 	 * - https://stackoverflow.com/a/55723074
 	 */
-	value->err = malloc(limit);
+	value->content.err = malloc(limit);
 
-	if (value->err == NULL)
+	if (value->content.err == NULL)
 		alloc_err(
 			MALLOC_ERR_MSG,
 			__FILE__,
@@ -1198,7 +1198,7 @@ struct lval *lval_err(
 		);
 
 	int snp_out = snprintf(
-		value->err,
+		value->content.err,
 		limit,
 		fmt,
 		mes,
@@ -1228,7 +1228,7 @@ struct lval *lval_err(
 
 		exit(52);
 	} else if ((unsigned int)snp_out >= limit) {
-		value->err[limit - 1] = '\0';
+		value->content.err[limit - 1] = '\0';
 	}
 
 	return value;
@@ -1267,7 +1267,7 @@ struct lval *lval_num(double num)
 		);
 
 	value->type = LVAL_NUM;
-	value->num = num;
+	value->content.num = num;
 
 	return value;
 }
@@ -1295,7 +1295,7 @@ struct lval *lval_sym(char *sym)
 	 * Reference:
 	 * https://stackoverflow.com/a/55723683
 	 */
-	value->sym = sym;
+	value->content.sym = sym;
 
 	return value;
 }
@@ -1462,7 +1462,7 @@ struct lval *lenv_get(
 	unsigned int i;
 
 	for (i = 0; i < env->count; i++) {
-		if (stringcmp(env->syms[i], value->sym) == 0)
+		if (stringcmp(env->syms[i], value->content.sym) == 0)
 			return lval_copy(env->vals[i]);
 	}
 
