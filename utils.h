@@ -11,7 +11,7 @@
 
 #include <stddef.h>
 
-enum lval_type {
+enum ltype_e {
 	LVAL_ERR = -1,
 	LVAL_NUM = 1,
 	LVAL_SYM = 2,
@@ -44,7 +44,7 @@ typedef struct lval *(*lbuiltin_td)(
  * https://stackoverflow.com/a/37830627
  */
 struct lval {
-	enum lval_type type;
+	enum ltype_e type;
 
 	double num;
 	char *err;
