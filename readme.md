@@ -100,6 +100,11 @@ This is the highlight of what i did differently from the book:
 
 8. Handle the truncated value scenario of `snprintf()`.
 
+9. Use `union` data type to store number, symbol, and error message value. As
+   far as i understand, we don't need these values at one time during the
+   evaluation, so let's put these values into the same memory location with
+   `union` data type.
+
 This is the things that i remember doing differently. There might be other
 things that i forgot to mention, so if you want to find out more, you can
 check the source code.
