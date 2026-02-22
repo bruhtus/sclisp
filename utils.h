@@ -204,7 +204,7 @@ void lenv_del(struct lenv *env);
 
 void lenv_add_builtin(
 	struct lenv *env,
-	char *name,
+	const char *name,
 	lbuiltin_td func,
 	const char *func_name
 );
@@ -218,7 +218,7 @@ struct lval *lenv_get(
 
 void lenv_put(
 	struct lenv *env,
-	char *sym,
+	const char *sym,
 	struct lval *value
 );
 
@@ -227,7 +227,7 @@ int stringcmp(const char *str1, const char *str2);
 void stringcpy(
 	char *dest,
 	size_t dest_len,
-	char *src,
+	const char *src,
 	size_t src_len,
 	const char *filename,
 	unsigned int line_number

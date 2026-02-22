@@ -1370,7 +1370,7 @@ void lenv_del(struct lenv *env)
 
 void lenv_add_builtin(
 	struct lenv *env,
-	char *name,
+	const char *name,
 	lbuiltin_td builtin,
 	const char *builtin_name
 )
@@ -1439,16 +1439,10 @@ void lenv_builtins_init(struct lenv *env)
 		"Error: function names and function pointers length did not match"
 	);
 
-	/*
-	 * We cast func_names to (char *) because we have
-	 * lenv_put() which has parameter type char * for the
-	 * symbol or variable we are trying to put into the
-	 * environment, which might not be a constant value.
-	 */
 	for (i = 0; i < ARRAY_LEN(func_names); i++)
 		lenv_add_builtin(
 			env,
-			(char *)func_names[i],
+			func_names[i],
 			func_pointers[i].func,
 			func_pointers[i].name
 		);
@@ -1473,9 +1467,21 @@ struct lval *lenv_get(
 	);
 }
 
+/*
+ * Looks like we can assign a non-const pointer
+ * to const pointer parameter in a function.
+ *
+ * This can be a way to show that the function
+ * won't modify the data passing through the
+ * function.
+ *
+ * References:
+ * - https://www.gnu.org/software/c-intro-and-ref/manual/html_node/const.html
+ * - https://stackoverflow.com/a/47632574
+ */
 void lenv_put(
 	struct lenv *env,
-	char *sym,
+	const char *sym,
 	struct lval *value
 )
 {
@@ -1617,7 +1623,7 @@ int stringcmp(const char *str1, const char *str2)
 void stringcpy(
 	char *dest,
 	size_t dest_len,
-	char *src,
+	const char *src,
 	size_t src_len,
 	const char *filename,
 	unsigned int line_number
