@@ -557,6 +557,9 @@ struct lval *builtin_head(
 
 	struct lval *head = lval_take(value, 0);
 
+	if (head->type == LVAL_ERR)
+		return head;
+
 	while (head->count > 1) {
 		struct lval *rest = lval_pop(
 			head,
