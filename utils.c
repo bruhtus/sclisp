@@ -332,6 +332,11 @@ struct lval *builtin_arith(struct lval *value, char op)
 {
 	unsigned int i;
 
+	const char *msg = "error message is empty";
+	const char *filename = __FILE__;
+	unsigned int line_number = __LINE__;
+	struct lval *next = NULL;
+
 	for (i = 0; i < value->count; i++) {
 		struct lval *cell = value->cell[i];
 
@@ -359,7 +364,7 @@ struct lval *builtin_arith(struct lval *value, char op)
 		first->content.num = -first->content.num;
 
 	while (value->count > 0) {
-		struct lval *next = lval_pop(
+		next = lval_pop(
 			value,
 			0,
 			__FILE__,
@@ -382,15 +387,11 @@ struct lval *builtin_arith(struct lval *value, char op)
 
 		if (op == '/') {
 			if (next->content.num == 0) {
-				lval_del(first);
-				lval_del(next);
+				msg = "division by zero";
+				filename = __FILE__;
+				line_number = __LINE__;
 
-				first = lval_err(
-					"division by zero",
-					__FILE__,
-					__LINE__
-				);
-				break;
+				goto err_free_operator_eval;
 			}
 
 			first->content.num /= next->content.num;
@@ -400,12 +401,11 @@ struct lval *builtin_arith(struct lval *value, char op)
 			double modulo = fmod(first->content.num, next->content.num);
 
 			if (isnan(modulo)) {
-				first = lval_err(
-					"invalid modulo operation",
-					__FILE__,
-					__LINE__
-				);
-				break;
+				msg = "invalid modulo operation";
+				filename = __FILE__;
+				line_number = __LINE__;
+
+				goto err_free_operator_eval;
 			}
 
 			first->content.num = modulo;
@@ -415,12 +415,11 @@ struct lval *builtin_arith(struct lval *value, char op)
 			double power = pow(first->content.num, next->content.num);
 
 			if (isnan(power)) {
-				first = lval_err(
-					"invalid power operation",
-					__FILE__,
-					__LINE__
-				);
-				break;
+				msg = "invalid power operation";
+				filename = __FILE__;
+				line_number = __LINE__;
+
+				goto err_free_operator_eval;
 			}
 
 			first->content.num = power;
@@ -431,6 +430,12 @@ struct lval *builtin_arith(struct lval *value, char op)
 
 	lval_del(value);
 	return first;
+
+err_free_operator_eval:
+	lval_del(next);
+	lval_del(first);
+	lval_del(value);
+	return lval_err(msg, filename, line_number);
 }
 
 struct lval *builtin_let(
