@@ -402,7 +402,6 @@ struct lval *builtin_arith(struct lval *value, char op)
 			case '/':
 				if (next->content.num == 0) {
 					msg = "division by zero";
-					filename = __FILE__;
 					line_number = __LINE__;
 
 					goto err_free_operator_eval;
@@ -416,7 +415,6 @@ struct lval *builtin_arith(struct lval *value, char op)
 
 				if (isnan(modulo)) {
 					msg = "invalid modulo operation";
-					filename = __FILE__;
 					line_number = __LINE__;
 
 					goto err_free_operator_eval;
@@ -430,7 +428,6 @@ struct lval *builtin_arith(struct lval *value, char op)
 
 				if (isnan(power)) {
 					msg = "invalid power operation";
-					filename = __FILE__;
 					line_number = __LINE__;
 
 					goto err_free_operator_eval;
@@ -441,7 +438,6 @@ struct lval *builtin_arith(struct lval *value, char op)
 
 			default:
 				msg = "unknown operator";
-				filename = __FILE__;
 				line_number = __LINE__;
 				goto err_free_operator_eval;
 		}
