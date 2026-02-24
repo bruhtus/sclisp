@@ -467,31 +467,29 @@ struct lval *builtin_let(
 	unsigned int i, j;
 	struct lval *syms = value->cell[0];
 
+	const char *msg = "error message is empty";
+	const char *filename = __FILE__;
+	unsigned int line_number = __LINE__;
+
 	if (syms->type != LVAL_QEXPR) {
-		lval_del(value);
-		return lval_err(
-			"builtin_let() passed non-quote expression",
-			__FILE__,
-			__LINE__
-		);
+		msg = "builtin_let() passed non-quote expression";
+		line_number = __LINE__;
+
+		goto err_free_value;
 	}
 
 	if (syms->count == 0) {
-		lval_del(value);
-		return lval_err(
-			"builtin_let() passed empty list",
-			__FILE__,
-			__LINE__
-		);
+		msg = "builtin_let() passed empty list";
+		line_number = __LINE__;
+
+		goto err_free_value;
 	}
 
 	if (syms->count != (value->count - 1)) {
-		lval_del(value);
-		return lval_err(
-			"builtin_let() having unequal symbols and values",
-			__FILE__,
-			__LINE__
-		);
+		msg = "builtin_let() having unequal symbols and values";
+		line_number = __LINE__;
+
+		goto err_free_value;
 	}
 
 	for (i = 0; i < syms->count; i++) {
@@ -499,21 +497,19 @@ struct lval *builtin_let(
 			if (
 				(stringcmp(env->syms[j], syms->cell[i]->content.sym) == 0) &&
 				(env->vals[j]->builtin != NULL)
-			)
-				return lval_err(
-					"builtin_let() cannot replace builtin function",
-					__FILE__,
-					__LINE__
-				);
+			) {
+				msg = "builtin_let() cannot replace builtin function";
+				line_number = __LINE__;
+
+				goto err_free_value;
+			}
 		}
 
 		if (syms->cell[i]->type != LVAL_SYM) {
-			lval_del(value);
-			return lval_err(
-				"builtin_let() cannot define non-symbol",
-				__FILE__,
-				__LINE__
-			);
+			msg = "builtin_let() cannot define non-symbol";
+			line_number = __LINE__;
+
+			goto err_free_value;
 		}
 
 		lenv_put(
@@ -525,6 +521,10 @@ struct lval *builtin_let(
 
 	lval_del(value);
 	return lval_sexpr();
+
+err_free_value:
+	lval_del(value);
+	return lval_err(msg, filename, line_number);
 }
 
 struct lval *builtin_head(
