@@ -68,7 +68,16 @@
  */
 #define FUNC_BUILTIN(func) {func, #func}
 
-#define ARRAY_LEN(array) (sizeof(array) / sizeof(array[0]))
+/*
+ * Encapsulate the macro arguments to prevent different
+ * interpretation. For example, `ARRAY_LEN(*ab)` should
+ * translate to `(*ab)[0]` and not `*ab[0]`. The array
+ * subscript (or the square bracket symbol) has higher
+ * precedence than the dereference symbol, so the array
+ * subscript will be parsed first and then the dereference
+ * symbol.
+ */
+#define ARRAY_LEN(array) (sizeof(array) / sizeof((array)[0]))
 
 /*
  * Static variable or function must be
