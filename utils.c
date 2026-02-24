@@ -331,6 +331,7 @@ struct lval *lval_copy(struct lval *value)
 struct lval *builtin_arith(struct lval *value, char op)
 {
 	unsigned int i;
+	double modulo, power;
 
 	const char *msg = "error message is empty";
 	const char *filename = __FILE__;
@@ -376,53 +377,64 @@ struct lval *builtin_arith(struct lval *value, char op)
 			return next;
 		}
 
-		if (op == '+')
-			first->content.num += next->content.num;
+		switch (op) {
+			case '+':
+				first->content.num += next->content.num;
+				break;
 
-		if (op == '-')
-			first->content.num -= next->content.num;
+			case '-':
+				first->content.num -= next->content.num;
+				break;
 
-		if (op == '*')
-			first->content.num *= next->content.num;
+			case '*':
+				first->content.num *= next->content.num;
+				break;
 
-		if (op == '/') {
-			if (next->content.num == 0) {
-				msg = "division by zero";
+			case '/':
+				if (next->content.num == 0) {
+					msg = "division by zero";
+					filename = __FILE__;
+					line_number = __LINE__;
+
+					goto err_free_operator_eval;
+				}
+
+				first->content.num /= next->content.num;
+				break;
+
+			case '%':
+				modulo = fmod(first->content.num, next->content.num);
+
+				if (isnan(modulo)) {
+					msg = "invalid modulo operation";
+					filename = __FILE__;
+					line_number = __LINE__;
+
+					goto err_free_operator_eval;
+				}
+
+				first->content.num = modulo;
+				break;
+
+			case '^':
+				power = pow(first->content.num, next->content.num);
+
+				if (isnan(power)) {
+					msg = "invalid power operation";
+					filename = __FILE__;
+					line_number = __LINE__;
+
+					goto err_free_operator_eval;
+				}
+
+				first->content.num = power;
+				break;
+
+			default:
+				msg = "unknown operator";
 				filename = __FILE__;
 				line_number = __LINE__;
-
 				goto err_free_operator_eval;
-			}
-
-			first->content.num /= next->content.num;
-		}
-
-		if (op == '%') {
-			double modulo = fmod(first->content.num, next->content.num);
-
-			if (isnan(modulo)) {
-				msg = "invalid modulo operation";
-				filename = __FILE__;
-				line_number = __LINE__;
-
-				goto err_free_operator_eval;
-			}
-
-			first->content.num = modulo;
-		}
-
-		if (op == '^') {
-			double power = pow(first->content.num, next->content.num);
-
-			if (isnan(power)) {
-				msg = "invalid power operation";
-				filename = __FILE__;
-				line_number = __LINE__;
-
-				goto err_free_operator_eval;
-			}
-
-			first->content.num = power;
 		}
 
 		lval_del(next);
