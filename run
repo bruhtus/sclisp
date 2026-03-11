@@ -23,6 +23,14 @@ case "$1" in
     $mpc_compiler
     $mpc_static
     ;;
+  cscope)
+    # Add the related file to cscope.files file.
+    if [ -n "$(command -v cscope)" ]; then
+      cscope -bq
+    else
+      echo 'cscope executable does not exist'
+    fi
+    ;;
   playground)
     gcc -l readline -o playground playground.c
     ;;
@@ -42,6 +50,7 @@ case "$1" in
     - main
     - main-debug
     - mpc
+    - cscope
     - playground
     - playground-debug
     - playground-objdump

@@ -1,3 +1,6 @@
 *.o
 playground/*
 !playground/*.c
+
+cscope.*
+!cscope.files
