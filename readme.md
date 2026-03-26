@@ -109,6 +109,9 @@ This is the highlight of what i did differently from the book:
     error in some cases, following the [linux kernel coding style
     guide](https://www.kernel.org/doc/html/v4.10/process/coding-style.html#centralized-exiting-of-functions).
 
+11. Trying to order `struct` member position to learn about struct alignment,
+    which can reduce the `struct` size a little bit.
+
 This is the things that i remember doing differently. There might be other
 things that i forgot to mention, so if you want to find out more, you can
 check the source code.

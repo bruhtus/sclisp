@@ -56,19 +56,30 @@ typedef struct lval *(*lbuiltin_td)(
  * We use unsigned int for count because count expected
  * not to have negative value.
  *
- * Reference:
- * https://stackoverflow.com/a/37830627
+ * In general, a struct instance will have the
+ * alignment of its _widest_ scalar member. Widest
+ * scalar member in here means the largest type that
+ * occupied the struct.
+ *
+ * For example, in 64-bit system, int type takes up
+ * 4 bytes, char type takes up 1 byte, pointer types
+ * takes up 8 bytes. So the wides scalar member if
+ * we have struct member type int, char, and pointer,
+ * is the _pointer_ type.
+ *
+ * References:
+ * - https://stackoverflow.com/a/37830627
+ * - http://www.catb.org/esr/structure-packing/
  */
 struct lval {
-	enum ltype_e type;
-
 	union lcontent_u content;
-
-	unsigned int count;
 	struct lval **cell;
 
 	lbuiltin_td builtin;
 	const char *builtin_name;
+
+	enum ltype_e type;
+	unsigned int count;
 };
 
 struct lenv {
