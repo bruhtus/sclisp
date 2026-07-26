@@ -19,9 +19,19 @@ int main(void)
 	printf("data.f: %f\n", data.f);
 	printf("data.s: %s\n", data.s);
 
+	/*
+	 * Reference:
+	 * https://cs.brown.edu/courses/csci0300/2021/notes/l06.html
+	 */
+	printf("data: %s\n", data);
+
+	data.i = 42;
+	printf("data: %d\n", data);
+
 	printf("sizeof data: %d\n", sizeof(data));
 	printf("sizeof data.i: %d\n", sizeof(data.i));
 	printf("sizeof data.f: %d\n", sizeof(data.f));
 	printf("sizeof data.s: %d\n", sizeof(data.s));
+
 	return 0;
 }
